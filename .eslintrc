@@ -11,6 +11,7 @@
                                  "ObjectExpression": "first"}],
         "semi": ["off"],
         "comma-dangle": ["off"],
+        "space-before-function-paren": ["off"],
     },
     "settings": {
         "import/resolver": {
