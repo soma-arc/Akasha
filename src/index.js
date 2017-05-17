@@ -46,9 +46,10 @@ class ThetaStream {
 
 const RENDER_VERTEX = require('./render.vert');
 const RENDER_FRAGMENT = require('./render.frag');
+const EQ_RECTANGULAR_FRAGMENT = require('./equirectangular.frag');
 
 class Canvas2D {
-    constructor(canvasId, thetaStream) {
+    constructor(canvasId, thetaStream, fragment) {
         this.canvas = document.getElementById(canvasId);
         this.gl = getWebGL2Context(this.canvas);
         this.thetaStream = thetaStream;
@@ -61,7 +62,7 @@ class Canvas2D {
         this.renderProgram = this.gl.createProgram();
         attachShader(this.gl, RENDER_VERTEX,
                      this.renderProgram, this.gl.VERTEX_SHADER);
-        attachShader(this.gl, RENDER_FRAGMENT,
+        attachShader(this.gl, fragment,
                      this.renderProgram, this.gl.FRAGMENT_SHADER);
         linkProgram(this.gl, this.renderProgram);
 
@@ -71,11 +72,14 @@ class Canvas2D {
         this.uniLocations = [];
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_texture'));
+        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
+                                                          'u_resolution'));
 
         this.thetaTexture = createRGBTextures(this.gl, 256, 256, 1)[0];
     }
 
     thetaStreamCanplayCallback(video) {
+        console.log(`resolution(${video.videoWidth}, ${video.videoHeight})`);
         this.thetaTexture = createRGBTextures(this.gl, video.videoWidth,
                                               video.videoHeight, 1)[0];
     }
@@ -95,7 +99,7 @@ class Canvas2D {
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.updateThetaTexture();
         this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
-
+        this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
                                     this.gl.FLOAT, false, 0, 0);
@@ -106,11 +110,16 @@ class Canvas2D {
 
 window.addEventListener('load', () => {
     const thetaS = new ThetaStream();
-    const canvas = new Canvas2D('canvas', thetaS);
-    thetaS.connect([canvas.thetaStreamCanplayCallback.bind(canvas)]);
+    const fisheyeCanvas = new Canvas2D('fisheyeCanvas',
+                                       thetaS, RENDER_FRAGMENT);
+    const equirectangularCanvas = new Canvas2D('equirectangularCanvas',
+                                               thetaS, EQ_RECTANGULAR_FRAGMENT);
+    thetaS.connect([fisheyeCanvas.thetaStreamCanplayCallback.bind(fisheyeCanvas),
+                    equirectangularCanvas.thetaStreamCanplayCallback.bind(equirectangularCanvas)]);
 
     function renderLoop() {
-        canvas.render();
+        fisheyeCanvas.render();
+        equirectangularCanvas.render();
         requestAnimationFrame(renderLoop);
     }
 
