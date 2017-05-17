@@ -9,7 +9,7 @@ class ThetaStream {
         this.height = 0;
     }
 
-    connect() {
+    connect(canplayCallbacks) {
         const media = {video: true, audio: false};
 
         const successCallback = (localMediaStream) => {
@@ -19,6 +19,9 @@ class ThetaStream {
                 this.streaming = true;
                 this.width = this.video.videoWidth;
                 this.height = this.video.videoHeight;
+                for (const callback of canplayCallbacks) {
+                    callback(this.video);
+                }
             }
             this.video.addEventListener('canplay', canplayListener);
             this.video.play();
@@ -64,28 +67,33 @@ class Canvas2D {
 
         this.renderCanvasVAttrib = this.gl.getAttribLocation(this.renderProgram,
                                                              'a_vertex');
-
+        this.gl.enableVertexAttribArray(this.renderCanvasVAttrib);
         this.uniLocations = [];
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_texture'));
 
-        this.thetaTexture = createRGBTextures(this.gl, thetaStream.width,
-                                               thetaStream.height, 1)[0];
+        this.thetaTexture = createRGBTextures(this.gl, 256, 256, 1)[0];
+    }
+
+    thetaStreamCanplayCallback(video) {
+        this.thetaTexture = createRGBTextures(this.gl, video.videoWidth,
+                                              video.videoHeight, 1)[0];
+    }
+
+    updateThetaTexture() {
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.thetaTexture);
+        if (this.thetaStream.streaming) {
+            this.gl.texImage2D(this.gl.TEXTURE_2D, 0,
+                               this.gl.RGBA, this.gl.RGBA,
+                               this.gl.UNSIGNED_BYTE, this.thetaStream.video);
+        }
     }
 
     render() {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.enableVertexAttribArray(this.renderCanvasVAttrib);
-        console.log(this.thetaStream.width);
-        console.log(this.thetaStream.height);
-        this.thetaTexture = createRGBTextures(this.gl, this.thetaStream.width,
-                                               this.thetaStream.height, 1)[0];
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.thetaTexture);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0,
-                           this.gl.RGBA, this.gl.RGBA,
-                           this.gl.UNSIGNED_BYTE, this.thetaStream.video);
+        this.updateThetaTexture();
         this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
@@ -99,7 +107,7 @@ class Canvas2D {
 window.addEventListener('load', () => {
     const thetaS = new ThetaStream();
     const canvas = new Canvas2D('canvas', thetaS);
-    thetaS.connect();
+    thetaS.connect([canvas.thetaStreamCanplayCallback.bind(canvas)]);
 
     function renderLoop() {
         canvas.render();
