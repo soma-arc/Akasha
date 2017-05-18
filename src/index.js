@@ -47,6 +47,7 @@ class ThetaStream {
 const RENDER_VERTEX = require('./render.vert');
 const RENDER_FRAGMENT = require('./render.frag');
 const EQ_RECTANGULAR_FRAGMENT = require('./equirectangular.frag');
+const PANORAMA_FRAGMENT = require('./panorama.frag');
 
 class Canvas2D {
     constructor(canvasId, thetaStream, fragment) {
@@ -114,12 +115,17 @@ window.addEventListener('load', () => {
                                        thetaS, RENDER_FRAGMENT);
     const equirectangularCanvas = new Canvas2D('equirectangularCanvas',
                                                thetaS, EQ_RECTANGULAR_FRAGMENT);
+    const panoramaCanvas = new Canvas2D('panoramaCanvas',
+                                        thetaS,
+                                        PANORAMA_FRAGMENT);
     thetaS.connect([fisheyeCanvas.thetaStreamCanplayCallback.bind(fisheyeCanvas),
-                    equirectangularCanvas.thetaStreamCanplayCallback.bind(equirectangularCanvas)]);
+                    equirectangularCanvas.thetaStreamCanplayCallback.bind(equirectangularCanvas,
+                                                                          panoramaCanvas.thetaStreamCanplayCallback.bind(panoramaCanvas))]);
 
     function renderLoop() {
         fisheyeCanvas.render();
         equirectangularCanvas.render();
+        panoramaCanvas.render();
         requestAnimationFrame(renderLoop);
     }
 
