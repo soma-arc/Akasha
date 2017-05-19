@@ -4,6 +4,8 @@ precision mediump float;
 in vec2 v_texCoord;
 uniform sampler2D u_texture;
 uniform vec2 u_resolution;
+uniform vec3 u_cameraTarget;
+uniform float u_fov;
 
 const float PI = 3.14159265359;
 const float TWO_PI = 2. * PI;
@@ -23,14 +25,14 @@ vec2 rand2n(vec2 co, float sampleIndex) {
 const float EPSILON = 0.0001;
 
 vec3 calcRay (const vec3 eye, const vec3 target, const vec3 up, const float fov,
-              const float width, const float height, const vec2 coord){
-    float imagePlane = (height * .5) / tan(fov * .5);
+              const vec2 resolution, const vec2 coord){
+    float imagePlane = (resolution.y * .5) / tan(fov * .5);
     vec3 v = normalize(target - eye);
     vec3 xaxis = normalize(cross(v, up));
     vec3 yaxis =  normalize(cross(v, xaxis));
     vec3 center = v * imagePlane;
-    vec3 origin = center - (xaxis * (width  *.5)) - (yaxis * (height * .5));
-    return normalize(origin + (xaxis * coord.x) + (yaxis * (height - coord.y)));
+    vec3 origin = center - (xaxis * (resolution.x  *.5)) - (yaxis * (resolution.y * .5));
+    return normalize(origin + (xaxis * coord.x) + (yaxis * (resolution.y - coord.y)));
 }
 
 bool intersectSphere(vec4 sphere,
@@ -131,20 +133,18 @@ vec4 gammaCorrect(vec4 rgba) {
                 rgba.a);
 }
 
-const vec3 up = vec3(0, 1, 0);
-float fov = radians(60.);
-vec3 target = vec3(1);
-const float SAMPLE_NUM = 3.;
 
+const float SAMPLE_NUM = 3.;
 out vec4 outColor;
 void main() {
-    vec3 eye = vec3(0);
+    const vec3 up = vec3(0, 1, 0);
+    const vec3 eye = vec3(0);
 
     vec3 sum = vec3(0);
     for(float i = 0. ; i < SAMPLE_NUM ; i++){
     	vec2 coordOffset = rand2n(gl_FragCoord.xy, i);
-    	vec3 ray = calcRay(eye, target, up, fov,
-        	               u_resolution.x, u_resolution.y,
+    	vec3 ray = calcRay(eye, u_cameraTarget, up, u_fov,
+        	               u_resolution.xy,
             	           gl_FragCoord.xy + coordOffset);
 
     	sum += sphericalView(ray);

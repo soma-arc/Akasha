@@ -4,6 +4,7 @@ precision mediump float;
 in vec2 v_texCoord;
 uniform sampler2D u_texture;
 uniform vec2 u_resolution;
+uniform vec4 u_internalViewport;
 
 const float PI = 3.14159265359;
 const float TWO_PI = 2. * PI;
