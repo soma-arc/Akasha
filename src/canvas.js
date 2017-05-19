@@ -4,7 +4,7 @@ import { getWebGL2Context, createRGBTextures, createSquareVbo,
 const RENDER_VERTEX = require('./render.vert');
 const DUAL_FISH_EYE_FRAGMENT = require('./render.frag');
 const EQ_RECTANGULAR_FRAGMENT = require('./equirectangular.frag');
-const PANORAMA_FRAGMENT = require('./panorama.frag');
+const INSIDE_SPHERE_FRAGMENT = require('./insideSphere.frag');
 
 export class Canvas2D {
     constructor(canvasId, thetaStream, fragment) {
@@ -109,9 +109,9 @@ export class EquirectangularCanvas extends Canvas2D {
     }
 }
 
-export class PanoramaCanvas extends Canvas2D {
+export class InsideSphereCanvas extends Canvas2D {
     constructor(canvasId, thetaStream) {
-        super(canvasId, thetaStream, PANORAMA_FRAGMENT);
+        super(canvasId, thetaStream, INSIDE_SPHERE_FRAGMENT);
     }
 
     render() {
