@@ -1,4 +1,5 @@
-import {DualFishEyeCanvas, EquirectangularCanvas, InsideSphereCanvas} from './canvas.js';
+import {DualFishEyeCanvas, EquirectangularCanvas,
+        InsideSphereCanvas, OutsideSphereCanvas} from './canvas.js';
 import ThetaStream from './theta.js'
 
 window.addEventListener('load', () => {
@@ -8,15 +9,19 @@ window.addEventListener('load', () => {
     const eqRectCanvas = new EquirectangularCanvas('equirectangularCanvas',
                                                    thetaS);
     const insideSphereCanvas = new InsideSphereCanvas('insideSphereCanvas',
-                                                  thetaS);
+                                                      thetaS);
+    const outsideSphereCanvas = new OutsideSphereCanvas('outsideSphereCanvas',
+                                                        thetaS);
     thetaS.connect([fisheyeCanvas.boundThetaStreamCallback,
                     eqRectCanvas.boundThetaStreamCallback,
-                    insideSphereCanvas.boundThetaStreamCallback]);
+                    insideSphereCanvas.boundThetaStreamCallback,
+                    outsideSphereCanvas.boundThetaStreamCallback]);
 
     function renderLoop() {
         fisheyeCanvas.render();
         eqRectCanvas.render();
         insideSphereCanvas.render();
+        outsideSphereCanvas.render();
         requestAnimationFrame(renderLoop);
     }
 

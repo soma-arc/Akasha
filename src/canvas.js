@@ -9,6 +9,7 @@ const RENDER_VERTEX = require('./render.vert');
 const DUAL_FISH_EYE_FRAGMENT = require('./render.frag');
 const EQ_RECTANGULAR_FRAGMENT = require('./equirectangular.frag');
 const INSIDE_SPHERE_FRAGMENT = require('./insideSphere.frag');
+const OUTSIDE_SPHERE_FRAGMENT = require('./outsideSphere.frag');
 
 export class Canvas2D {
     constructor(canvasId, thetaStream, fragment) {
@@ -191,6 +192,27 @@ export class InsideSphereCanvas extends Canvas2D {
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
         this.gl.uniform3f(this.uniLocations[2], this.cameraTarget[0], this.cameraTarget[1], this.cameraTarget[2]);
         this.gl.uniform1f(this.uniLocations[3], DegToRad(this.fov));
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+        this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
+                                    this.gl.FLOAT, false, 0, 0);
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+        this.gl.flush();
+    }
+}
+
+export class OutsideSphereCanvas extends Canvas2D {
+    constructor(canvasId, thetaStream) {
+        super(canvasId, thetaStream, OUTSIDE_SPHERE_FRAGMENT);
+    }
+
+    render() {
+        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        this.gl.useProgram(this.renderProgram);
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.updateThetaTexture();
+        this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
+        this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
