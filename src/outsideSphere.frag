@@ -3,6 +3,7 @@ precision mediump float;
 
 in vec2 v_texCoord;
 uniform sampler2D u_texture;
+uniform float[8] u_mobiusArray;
 uniform vec2 u_resolution;
 uniform vec3 u_cameraPos;
 uniform vec3 u_cameraUp;
@@ -87,6 +88,37 @@ bool intersectPlane(vec3 p, vec3 n, vec3 rayOrigin, vec3 rayDir,
     return false;
 }
 
+vec2 compQuot(const vec2 a, const vec2 b){
+	float denom = dot(b, b);
+    return vec2((a.x * b.x + a.y * b.y) / denom,
+                (a.y * b.x - a.x * b.y) / denom);
+}
+
+vec2 conjugate(const vec2 a){
+	const vec2 conj = vec2(1, -1);
+    return a * conj;
+}
+vec3 sphereFromCP1(vec4 p){
+	vec2 z1 = p.xy;
+    vec2 z2 = p.zw;
+    if(length(z2) > length(z1)){
+    	vec2 z = compQuot(z1, z2);
+        float denom = 1. + dot(z, z);
+        return vec3(2. * z.x / denom, (denom - 2.) / denom, 2. * z.y / denom);
+    }else{
+    	vec2 z = conjugate(compQuot(z2, z1));
+        float denom = 1. + dot(z, z);
+        return vec3(2. * z.x / denom, (2. - denom) / denom, 2. * z.y / denom);
+    }
+}
+
+vec4 CP1FromSphere(vec3 pos){
+	if(pos.y < 0.)
+        return vec4(pos.x, pos.z, 1. - pos.y, 0);
+    else
+        return vec4(1. + pos.y, 0, pos.x, -pos.z);
+}
+
 vec2 equirectangularCoord(vec3 coordOnSphere){
 	vec3 dir = (coordOnSphere);
     float l = atan(dir.z, dir.x);
@@ -94,10 +126,38 @@ vec2 equirectangularCoord(vec3 coordOnSphere){
     return vec2(l, acos(dir.y));
 }
 
+struct SL2C{
+	vec2 a;
+    vec2 b;
+    vec2 c;
+    vec2 d;
+};
+
+vec2 compProd(const vec2 a, const vec2 b){
+	return vec2(a.x * b.x - a.y * b.y,
+                a.x * b.y + a.y * b.x);
+}
+
+vec4 applyMatVec(const SL2C m, const vec4 c){
+	return vec4(compProd(m.a, c.xy) + compProd(m.b, c.zw),
+                compProd(m.c, c.xy) + compProd(m.d, c.zw));
+}
+
+vec3 coordOnSphere(float theta, float phi){
+	return vec3(sin(phi) * cos(theta),
+                cos(phi),
+                sin(phi) * sin(theta));
+}
 
 vec3 sphericalView(vec3 dir){
     //    vec4 z = CP1FromSphere(dir);
     vec2 angles = equirectangularCoord(dir);
+
+    SL2C mobius = SL2C(vec2(u_mobiusArray[0], u_mobiusArray[1]), vec2(u_mobiusArray[2], u_mobiusArray[3]),
+                       vec2(u_mobiusArray[4], u_mobiusArray[5]), vec2(u_mobiusArray[6], u_mobiusArray[7]));
+    vec4 z = CP1FromSphere(coordOnSphere(angles.x, angles.y));
+    angles = equirectangularCoord(sphereFromCP1(applyMatVec(mobius, z)));
+
 
     float angle = angles.y * 0.63661977 - 1.0; // angles.y / PI
     float blend = 0.5 - clamp(angle * 10.0, -0.5, 0.5);

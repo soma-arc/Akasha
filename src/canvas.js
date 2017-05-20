@@ -100,8 +100,12 @@ export class DualFishEyeCanvas extends Canvas2D {
 }
 
 export class EquirectangularCanvas extends Canvas2D {
-    constructor(canvasId, thetaStream) {
+    constructor(canvasId, thetaStream, mobiusMngr) {
         super(canvasId, thetaStream, EQ_RECTANGULAR_FRAGMENT);
+
+        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
+                                                          'u_mobiusArray'));
+        this.mobiusMngr = mobiusMngr;
     }
 
     render() {
@@ -111,6 +115,8 @@ export class EquirectangularCanvas extends Canvas2D {
         this.updateThetaTexture();
         this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
+        this.gl.uniform1fv(this.uniLocations[2], this.mobiusMngr.sl2cMatrixArray);
+
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
                                     this.gl.FLOAT, false, 0, 0);
@@ -120,8 +126,10 @@ export class EquirectangularCanvas extends Canvas2D {
 }
 
 export class InsideSphereCanvas extends Canvas2D {
-    constructor(canvasId, thetaStream) {
+    constructor(canvasId, thetaStream, mobiusMngr) {
         super(canvasId, thetaStream, INSIDE_SPHERE_FRAGMENT);
+
+        this.mobiusMngr = mobiusMngr;
 
         this.cameraPos = [0, 0, 0];
         this.cameraTarget = [0, 0, 0];
@@ -133,6 +141,8 @@ export class InsideSphereCanvas extends Canvas2D {
         this.isMousePressing = false;
         this.updateCamera();
 
+        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
+                                                          'u_mobiusArray'));
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_cameraTarget'));
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
@@ -190,8 +200,10 @@ export class InsideSphereCanvas extends Canvas2D {
         this.updateThetaTexture();
         this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
-        this.gl.uniform3f(this.uniLocations[2], this.cameraTarget[0], this.cameraTarget[1], this.cameraTarget[2]);
-        this.gl.uniform1f(this.uniLocations[3], DegToRad(this.fov));
+        this.gl.uniform1fv(this.uniLocations[2], this.mobiusMngr.sl2cMatrixArray);
+        this.gl.uniform3f(this.uniLocations[3],
+                          this.cameraTarget[0], this.cameraTarget[1], this.cameraTarget[2]);
+        this.gl.uniform1f(this.uniLocations[4], DegToRad(this.fov));
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
@@ -202,8 +214,10 @@ export class InsideSphereCanvas extends Canvas2D {
 }
 
 export class OutsideSphereCanvas extends Canvas2D {
-    constructor(canvasId, thetaStream) {
+    constructor(canvasId, thetaStream, mobiusMngr) {
         super(canvasId, thetaStream, OUTSIDE_SPHERE_FRAGMENT);
+
+        this.mobiusMngr = mobiusMngr;
 
         this.cameraPos = [0, 1, 1];
         this.cameraTarget = [0, 0, 0];
@@ -216,6 +230,8 @@ export class OutsideSphereCanvas extends Canvas2D {
         this.cameraDistance = 2;
         this.updateCamera();
 
+        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
+                                                          'u_mobiusArray'));
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_cameraPos'));
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
@@ -276,9 +292,10 @@ export class OutsideSphereCanvas extends Canvas2D {
         this.updateThetaTexture();
         this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
-        this.gl.uniform3f(this.uniLocations[2],
-                          this.cameraPos[0], this.cameraPos[1], this.cameraPos[2]);
+        this.gl.uniform1fv(this.uniLocations[2], this.mobiusMngr.sl2cMatrixArray);
         this.gl.uniform3f(this.uniLocations[3],
+                          this.cameraPos[0], this.cameraPos[1], this.cameraPos[2]);
+        this.gl.uniform3f(this.uniLocations[4],
                           this.cameraUp[0], this.cameraUp[1], this.cameraUp[2]);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);

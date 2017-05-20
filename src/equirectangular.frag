@@ -18,6 +18,8 @@ struct SL2C{
     vec2 d;
 };
 
+uniform float[8] u_mobiusArray;
+
 const vec2 COMPLEX_ONE = vec2(1, 0);
 const vec2 COMPLEX_ZERO = vec2(0);
 const SL2C MAT_UNIT = SL2C(COMPLEX_ONE, COMPLEX_ZERO,
@@ -93,81 +95,6 @@ vec3 sphereFromCP1(vec4 p){
     }
 }
 
-vec2 reverseStereoProject(const vec3 pos){
-	return vec2(pos.x, pos.z) / (1. - pos.z);
-}
-
-vec3 stereoProject(vec2 pos){
-    pos *= .5;
-    float x = pos.x;
-    float y = pos.y;
-    float x2y2 = x * x + y * y;
-    return vec3((2. * x) / (1. + x2y2),
-                (-1. + x2y2) / (1. + x2y2),
-                (2. * y) / (1. + x2y2));
-}
-
-SL2C infZeroOneToTriple(const vec4 p, const vec4 q, const vec4 r){
-	vec2 p1 = p.xy; vec2 p2 = p.zw;
-    vec2 q1 = q.xy; vec2 q2 = q.zw;
-    vec2 r1 = r.xy; vec2 r2 = r.zw;
-    SL2C m = SL2C(p1, q1, p2, q2);
-    SL2C mInv = matInverse(m);
-    vec4 v = applyMatVec(mInv, r);
-    return SL2C(compProd(v.xy, p1), compProd(v.zw, q1),
-                compProd(v.xy, p2), compProd(v.zw, q2));
-}
-
-SL2C twoTriplesToSL(const vec4 a1, const vec4 b1, const vec4 c1,
-                    const vec4 a2, const vec4 b2, const vec4 c2){
-	return matProd(infZeroOneToTriple(a2, b2, c2),
-                   matInverse(infZeroOneToTriple(a1, b1, c1)));
-}
-
-vec3 vectorPerpToPQ(vec3 p, vec3 q){
-    if(abs(dot(p, q) + 1.) < 0.0001){
-        if(abs(dot(p, vec3(1, 0, 0))) > 0.999){
-        	return vec3(0, 1, 0);
-        }else{
-        	return normalize(cross(p, vec3(1, 0, 0)));
-        }
-    }else{
-    	return normalize(cross(p, q));
-    }
-}
-
-SL2C rotateAroundAxisSpherePointsPQ(const vec3 p, const vec3 q, const float theta){
-	vec4 CP1p = CP1FromSphere(p);
-    vec4 CP1q = CP1FromSphere(q);
-	vec3 r = vectorPerpToPQ(p, q);
-    vec4 CP1r = CP1FromSphere(r);
-    SL2C st = twoTriplesToSL(CP1p, CP1q, CP1r,
-            	           vec4(0, 0, 1, 0),
-                           vec4(1, 0, 0, 0),
-                           vec4(1, 0, 1, 0));
-    SL2C mTheta = SL2C(vec2(cos(theta), sin(theta)), COMPLEX_ZERO,
-                       COMPLEX_ZERO, COMPLEX_ONE);
-    return matProd( matProd(matInverse(st), mTheta), st);
-}
-
-SL2C rotateSpherePointsPQ(const vec3 p, const vec3 q){
-	vec4 CP1p = CP1FromSphere(p);
-    vec4 CP1q = CP1FromSphere(q);
-    if(abs(dot(p, q) - 1.) < 0.0001){
-    	return SL2C(COMPLEX_ONE, COMPLEX_ZERO, COMPLEX_ZERO, COMPLEX_ONE);
-    }else{
-    	vec3 r = vectorPerpToPQ(p, q);
-        vec4 CP1r = CP1FromSphere(r);
-        vec4 CP1mr = CP1FromSphere(-r);
-        return twoTriplesToSL(CP1p, CP1r, CP1mr, CP1q, CP1r, CP1mr);
-    }
-}
-
-SL2C rotateAroundAxis(const vec3 p, const float theta){
-	return rotateAroundAxisSpherePointsPQ(p, -p, theta);
-}
-
-
 const float DISPLAY_GAMMA_COEFF = 1. / 2.2;
 vec4 gammaCorrect(vec4 rgba) {
     return vec4((min(pow(rgba.r, DISPLAY_GAMMA_COEFF), 1.)),
@@ -186,14 +113,13 @@ void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution;
     vec2 lnglat = vec2(TWO_PI, PI) * uv;
 
-    SL2C mobius = rotateAroundAxis(coordOnSphere(0., 0.), PI);
-    mobius = matProd(rotateAroundAxis(coordOnSphere(0., PI_2), PI_2),
-                     mobius);
+    SL2C mobius = SL2C(vec2(u_mobiusArray[0], u_mobiusArray[1]), vec2(u_mobiusArray[2], u_mobiusArray[3]),
+                       vec2(u_mobiusArray[4], u_mobiusArray[5]), vec2(u_mobiusArray[6], u_mobiusArray[7]));
     vec4 z = CP1FromSphere(coordOnSphere(lnglat.x, lnglat.y));
-    //    vec2 angles = equirectangularCoord(sphereFromCP1(applyMatVec(mobius, z)));
+    lnglat = equirectangularCoord(sphereFromCP1(applyMatVec(mobius, z)));
 
-    float angle = 2. * mod(uv.y, 1.) - 1.;  // [-1, 1]
-    //   float angle = angles.y * 0.63661977 - 1.0; // angles.y / PI
+    //float angle = 2. * mod(uv.y, 1.) - 1.;  // [-1, 1]
+    float angle = lnglat.y * 0.63661977 - 1.0; // angles.y * 2 / PI
     float blend = 0.5 - clamp(angle * 10.0, -0.5, 0.5);
 
     vec2 orientation = vec2(cos(lnglat.x), sin(lnglat.x)) * 0.885; // R= 0.885?

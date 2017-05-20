@@ -28,6 +28,7 @@ export default class ThetaStream {
             if (err.name === 'PermissionDeniedError') {
                 alert('denied permission');
             } else {
+                console.log(err);
                 alert('can not be used webcam');
             }
         }

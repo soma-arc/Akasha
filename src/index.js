@@ -1,17 +1,19 @@
-import {DualFishEyeCanvas, EquirectangularCanvas,
-        InsideSphereCanvas, OutsideSphereCanvas} from './canvas.js';
-import ThetaStream from './theta.js'
+import { DualFishEyeCanvas, EquirectangularCanvas,
+         InsideSphereCanvas, OutsideSphereCanvas } from './canvas.js';
+import ThetaStream from './theta.js';
+import { MobiusManager } from './mobius.js';
 
 window.addEventListener('load', () => {
     const thetaS = new ThetaStream();
+    const mobius = new MobiusManager();
     const fisheyeCanvas = new DualFishEyeCanvas('fisheyeCanvas',
                                                 thetaS);
     const eqRectCanvas = new EquirectangularCanvas('equirectangularCanvas',
-                                                   thetaS);
+                                                   thetaS, mobius);
     const insideSphereCanvas = new InsideSphereCanvas('insideSphereCanvas',
-                                                      thetaS);
+                                                      thetaS, mobius);
     const outsideSphereCanvas = new OutsideSphereCanvas('outsideSphereCanvas',
-                                                        thetaS);
+                                                        thetaS, mobius);
     thetaS.connect([fisheyeCanvas.boundThetaStreamCallback,
                     eqRectCanvas.boundThetaStreamCallback,
                     insideSphereCanvas.boundThetaStreamCallback,
