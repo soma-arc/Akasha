@@ -4,6 +4,8 @@ precision mediump float;
 in vec2 v_texCoord;
 uniform sampler2D u_texture;
 uniform vec2 u_resolution;
+uniform vec3 u_cameraPos;
+uniform vec3 u_cameraUp;
 
 const float PI = 3.14159265359;
 const float TWO_PI = 2. * PI;
@@ -155,7 +157,7 @@ vec3 computeNormal(const vec3 p){
                         distFunc(p + NORMAL_COEFF.yyx).x - distFunc(p - NORMAL_COEFF.yyx).x));
 }
 
-const int MAX_MARCHING_LOOP = 400;
+const int MAX_MARCHING_LOOP = 500;
 int march (vec3 rayOrg, vec3 rayDir, inout float minDist,
            inout vec3 intersection, inout vec3 normal) {
     vec3 rayPos = rayOrg;
@@ -181,7 +183,10 @@ float computeShadowFactor (vec3 rayOrg, vec3 rayDir,
     float shadowFactor = 1.0;
     for(float t = mint ; t < maxt ;){
         float d = distFunc(rayOrg + rayDir * t).x;
-        if(d < EPSILON) break;
+        if(d < EPSILON) {
+            shadowFactor = 0.;
+            break;
+        }
 
         shadowFactor = min(shadowFactor, k * d / t);
         t += d;
@@ -206,8 +211,8 @@ vec3 calcColor(vec3 rayOrg, vec3 rayDir) {
             matColor = vec3(1);
         }
 
-        float k = computeShadowFactor(intersection + EPSILON * normal, LIGHT_DIR,
-                                      0., 10., 2.);
+        float k = computeShadowFactor(intersection + 0.01 * normal, LIGHT_DIR,
+                                      0., 500., 2.);
         vec3 diffuse =  clamp(dot(normal, LIGHT_DIR), 0., 1.) * matColor;
         vec3 ambient = matColor * AMBIENT_FACTOR;
         color = (diffuse * k + ambient);
@@ -219,18 +224,18 @@ vec3 calcColor(vec3 rayOrg, vec3 rayDir) {
 const float SAMPLE_NUM = 5.;
 out vec4 outColor;
 void main() {
-    const vec3 up = vec3(0, 1, 0);
+    const vec3 up = normalize(vec3(0, 1, 0));
     const vec3 eye = vec3(3, 1, 1);
     const vec3 target = vec3(0);
     const float fov = radians(60.);
     vec3 sum = vec3(0);
     for(float i = 0. ; i < SAMPLE_NUM ; i++){
     	vec2 coordOffset = rand2n(gl_FragCoord.xy, i);
-    	vec3 ray = calcRay(eye, target, up, fov,
+    	vec3 ray = calcRay(u_cameraPos, target, u_cameraUp, fov,
         	               u_resolution.xy,
             	           gl_FragCoord.xy + coordOffset);
 
-    	sum += calcColor(eye, ray);
+    	sum += calcColor(u_cameraPos, ray);
 	}
     outColor = gammaCorrect(vec4(sum/SAMPLE_NUM, 1));
 }

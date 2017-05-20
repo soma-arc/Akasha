@@ -123,7 +123,7 @@ export class InsideSphereCanvas extends Canvas2D {
     constructor(canvasId, thetaStream) {
         super(canvasId, thetaStream, INSIDE_SPHERE_FRAGMENT);
 
-        this.eye = [0, 0, 0];
+        this.cameraPos = [0, 0, 0];
         this.cameraTarget = [0, 0, 0];
         this.fov = 60;
         this.up = [0, 1, 0];
@@ -204,6 +204,69 @@ export class InsideSphereCanvas extends Canvas2D {
 export class OutsideSphereCanvas extends Canvas2D {
     constructor(canvasId, thetaStream) {
         super(canvasId, thetaStream, OUTSIDE_SPHERE_FRAGMENT);
+
+        this.cameraPos = [0, 1, 1];
+        this.cameraTarget = [0, 0, 0];
+        this.fov = 60;
+        this.cameraUp = [0, 1, 0];
+
+        this.lnglat = [0, 0];
+        this.mouseDownLngLat = [0, 0];
+        this.isMousePressing = false;
+        this.cameraDistance = 2;
+        this.updateCamera();
+
+        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
+                                                          'u_cameraPos'));
+        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
+                                                          'u_cameraUp'));
+
+        this.boundOnMouseDown = this.onMouseDown.bind(this);
+        this.boundOnMouseMove = this.onMouseMove.bind(this);
+        this.boundOnMouseRelease = this.onMouseRelease.bind(this);
+        this.boundOnMouseWheel = this.onMouseWheel.bind(this);
+        this.canvas.addEventListener('mousedown', this.boundOnMouseDown);
+        this.canvas.addEventListener('mousemove', this.boundOnMouseMove);
+        this.canvas.addEventListener('mouseup', this.boundOnMouseRelease);
+        this.canvas.addEventListener('mouseout', this.boundOnMouseRelease);
+        this.canvas.addEventListener('mousewheel', this.boundOnMouseWheel);
+    }
+
+    onMouseDown(event) {
+        this.isMousePressing = true;
+        this.mouseDownXY = this.getMousePosOnCanvas(event);
+        this.mouseDownLngLat = [this.lnglat[0], this.lnglat[1]];
+    }
+
+    onMouseMove(event) {
+        event.preventDefault();
+        if (this.isMousePressing) {
+            const mouse = this.getMousePosOnCanvas(event);
+            this.lnglat = [(this.mouseDownXY[0] - mouse[0]) * 0.5 + this.mouseDownLngLat[0],
+                           (mouse[1] - this.mouseDownXY[1]) * 0.5 + this.mouseDownLngLat[1]];
+            this.updateCamera();
+        }
+    }
+
+    onMouseRelease(event) {
+        this.isMousePressing = false;
+    }
+
+    onMouseWheel(event) {
+        if (event.wheelDelta < 0 || this.cameraDistance > 1) {
+            this.cameraDistance -= event.wheelDelta * 0.001;
+        }
+        this.updateCamera();
+    }
+
+    updateCamera() {
+        this.lnglat[1] = Math.max(-85, Math.min(85, this.lnglat[1]));
+        const phi = DegToRad(90 - this.lnglat[1]);
+        const theta = DegToRad(this.lnglat[0]);
+
+        this.cameraPos = [this.cameraDistance * Math.sin(phi) * Math.cos(theta),
+                          Math.max(-0.9, this.cameraDistance * Math.cos(phi)),
+                          this.cameraDistance * Math.sin(phi) * Math.sin(theta)];
     }
 
     render() {
@@ -213,6 +276,10 @@ export class OutsideSphereCanvas extends Canvas2D {
         this.updateThetaTexture();
         this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
+        this.gl.uniform3f(this.uniLocations[2],
+                          this.cameraPos[0], this.cameraPos[1], this.cameraPos[2]);
+        this.gl.uniform3f(this.uniLocations[3],
+                          this.cameraUp[0], this.cameraUp[1], this.cameraUp[2]);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
