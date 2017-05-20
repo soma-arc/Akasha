@@ -33,7 +33,7 @@ export default class SL2C {
 
     inverse () {
         return new SL2C(this.d, this.b.mult(Complex.MINUS_ONE),
-                        this.c.mult(Complex.MINUS_ONE), this.a).scale(this.determinant());
+                        this.c.mult(Complex.MINUS_ONE), this.a).scale(Complex.ONE.div(this.determinant()));
     }
 
     trace () {
