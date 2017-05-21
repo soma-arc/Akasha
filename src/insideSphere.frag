@@ -128,7 +128,7 @@ vec3 sphericalView(vec3 dir){
     vec4 z = CP1FromSphere(coordOnSphere(angles.x, angles.y));
     angles = equirectangularCoord(sphereFromCP1(applyMatVec(mobius, z)));
 
-    float angle = angles.y * 0.63661977 - 1.0; // angles.y * 2 / (PI)
+    float angle = -(angles.y * 0.63661977 - 1.0); // angles.y * 2 / (PI)
     float blend = 0.5 - clamp(angle * 10.0, -0.5, 0.5);
 
     vec2 orientation = vec2(cos(angles.x), sin(angles.x)) * 0.885; // R= 0.885?
