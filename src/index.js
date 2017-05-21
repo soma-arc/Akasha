@@ -31,5 +31,11 @@ window.addEventListener('load', () => {
     const gui = new dat.GUI();
     const controller = gui.add(mobius, 'rotation', 0, Math.PI * 2).step(0.01);
     controller.onChange(mobius.update.bind(mobius));
+
+    const translationController = gui.add(mobius, 'translation', -Math.PI / 2, Math.PI / 2).step(0.01);
+    translationController.onChange(mobius.update.bind(mobius));
+
+    const zoomController = gui.add(mobius, 'zoomFactor', 0.1, 10).step(0.01);
+    zoomController.onChange(mobius.update.bind(mobius));
     renderLoop();
 });

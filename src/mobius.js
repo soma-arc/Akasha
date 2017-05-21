@@ -121,6 +121,55 @@ function ComputeVectorPerpToPQ (p, q) {
     }
 }
 
+// p and q are points on the sphere
+// compute SL(2, C) rotating image of p to image of q on CP1
+function RotateSpherePointsPQ (p, q) {
+    assert.ok(p instanceof Vec3);
+    assert.ok(q instanceof Vec3);
+
+    if (Math.abs(Vec3.dot(p, q) - 1) < 0.0001) {
+        return SL2C.UNIT;
+    } else {
+        const CP1p = CP1.MakeFromSphere(p);
+        const CP1q = CP1.MakeFromSphere(q);
+
+        const r = ComputeVectorPerpToPQ(p, q);
+        const CP1r = CP1.MakeFromSphere(r);
+        const CP1mr = CP1.MakeFromSphere(r.scale(-1));
+        return TwoTriplesToSL(CP1p, CP1r, CP1mr, CP1q, CP1r, CP1mr);
+    }
+}
+
+// p is the point on the sphere
+// compute SL(2, C) zooming in on p by a factor of scale
+function ZoomIn (p, zoomFactor) {
+    assert.ok(p instanceof Vec3);
+    assert.ok(zoomFactor instanceof Complex);
+
+    const rot = RotateSpherePointsPQ(p, CoordOnSphere(0, 0));
+    const scl = new SL2C(zoomFactor, Complex.ZERO,
+                         Complex.ZERO, Complex.ONE);
+    return rot.inverse().mult(scl).mult(rot);
+}
+
+function ZoomAlongAxisSpherePointsPQ (p, q, zoomFactor) {
+    assert.ok(p instanceof Vec3);
+    assert.ok(q instanceof Vec3);
+    assert.ok(zoomFactor instanceof Complex);
+
+    const CP1p = CP1.MakeFromSphere(p);
+    const CP1q = CP1.MakeFromSphere(q);
+    assert.ok(Vec3.dot(p, q) < 0.9999, 'points should not be in the same plane');
+
+    const r = ComputeVectorPerpToPQ(p, q);
+    const CP1r = CP1.MakeFromSphere(r);
+    const standardM = TwoTriplesToSL(CP1p, CP1q, CP1r,
+                                     CP1.ZERO_ONE, CP1.ONE_ZERO, CP1.ONE_ONE);
+    const thetaM = new SL2C(zoomFactor, Complex.ZERO,
+                            Complex.ZERO, Complex.ONE);
+    return standardM.inverse().mult(thetaM).mult(standardM);
+}
+
 // p and q are points on sphere
 // computes SL(2, C) rotating by angle theta around the axis from p and q
 function RotateAroundAxisSpherePointsPQ (p, q, theta) {
@@ -144,6 +193,29 @@ function RotateAroundAxisSpherePointsPQ (p, q, theta) {
     return standardM.inverse().mult(thetaM).mult(standardM);
 }
 
+// p1, q1, r1, p2, q2, r2 are points on the sphere
+// compute SL(2,C) that sends the three points p1,q1,r1 to p2,q2,r2
+function ThreePointsToThreePoints (p1, q1, r1, p2, q2, r2) {
+    assert.ok(p1 instanceof Vec3);
+    assert.ok(q1 instanceof Vec3);
+    assert.ok(r1 instanceof Vec3);
+    assert.ok(p2 instanceof Vec3);
+    assert.ok(q2 instanceof Vec3);
+    assert.ok(r2 instanceof Vec3);
+    return TwoTriplesToSL(CP1.MakeFromSphere(p1),
+                          CP1.MakeFromSphere(q1),
+                          CP1.MakeFromSphere(r1),
+                          CP1.MakeFromSphere(p2),
+                          CP1.MakeFromSphere(q2),
+                          CP1.MakeFromSphere(r2));
+}
+
+// p, q, r1, r2 are points on the sphere
+// compute SL(2,C) translating/rotating on the axis from p to q
+function TranslateAlongAxis (p, q, r1, r2) {
+    return ThreePointsToThreePoints(p, q, r1, p, q, r2);
+}
+
 // computes SL(2, C) rotating by angle theta around the axis from p to its antipode
 export function RotateAroundAxis (p, theta) {
     assert.ok(p instanceof Vec3);
@@ -158,7 +230,8 @@ export class MobiusManager {
         this.axisLng = PI_2;
         this.axisLat = PI_2;
         this.rotation = PI_2;
-
+        this.translation = 0;
+        this.zoomFactor = 1;
         this.update();
     }
 
@@ -166,6 +239,12 @@ export class MobiusManager {
         this.sl2cMatrix = RotateAroundAxis(CoordOnSphere(this.axisLng,
                                                          this.axisLat),
                                            this.rotation);
+        this.sl2cMatrix = this.sl2cMatrix.mult(TranslateAlongAxis(CoordOnSphere(Math.PI, 0),
+                                                                  CoordOnSphere(Math.PI, Math.PI),
+                                                                  CoordOnSphere(Math.PI, PI_2),
+                                                                  CoordOnSphere(Math.PI, PI_2 + this.translation)));
+        this.sl2cMatrix = this.sl2cMatrix.mult(ZoomIn(CoordOnSphere(Math.PI, PI_2),
+                                                      new Complex(this.zoomFactor, 0)));
     }
 
     get sl2cMatrixArray () {
