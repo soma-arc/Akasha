@@ -2,6 +2,7 @@ import { DualFishEyeCanvas, EquirectangularCanvas,
          InsideSphereCanvas, OutsideSphereCanvas } from './canvas.js';
 import ThetaStream from './theta.js';
 import { MobiusManager } from './mobius.js';
+import dat from '../lib/dat.gui/build/dat.gui.min.js';
 
 window.addEventListener('load', () => {
     const thetaS = new ThetaStream();
@@ -27,5 +28,8 @@ window.addEventListener('load', () => {
         requestAnimationFrame(renderLoop);
     }
 
+    const gui = new dat.GUI();
+    const controller = gui.add(mobius, 'rotation', 0, Math.PI * 2).step(0.01);
+    controller.onChange(mobius.update.bind(mobius));
     renderLoop();
 });

@@ -155,10 +155,20 @@ export class MobiusManager {
     constructor () {
         this.sl2cMatrix = SL2C.UNIT;
 
-        this.sl2cMatrix = RotateAroundAxis(CoordOnSphere(Math.PI, PI_2), PI_2);
+        this.axisLng = PI_2;
+        this.axisLat = PI_2;
+        this.rotation = PI_2;
+
+        this.update();
+    }
+
+    update () {
+        this.sl2cMatrix = RotateAroundAxis(CoordOnSphere(this.axisLng,
+                                                         this.axisLat),
+                                           this.rotation);
     }
 
     get sl2cMatrixArray () {
-        return this.sl2cMatrix.linearArray;
+        return this.sl2cMatrix.inverse().linearArray;
     }
 }
