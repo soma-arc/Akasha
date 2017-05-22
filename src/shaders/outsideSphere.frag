@@ -88,6 +88,31 @@ bool intersectPlane(vec3 p, vec3 n, vec3 rayOrigin, vec3 rayDir,
     return false;
 }
 
+vec3 coordOnSphere(float theta, float phi){
+	return vec3(sin(phi) * cos(theta),
+                cos(phi + PI),
+                sin(phi) * sin(theta));
+}
+
+vec2 equirectangularCoord(const vec3 coordOnSphere){
+	vec3 dir = (coordOnSphere);
+    float l = atan(dir.z, dir.x);
+    if (l < 0.) l += TWO_PI;
+    return vec2(l, abs(acos(dir.y)-PI));
+}
+
+vec4 CP1FromSphere(const vec3 pos){
+	if(pos.y < 0.)
+        return vec4(pos.x, pos.z, 1. - pos.y, 0);
+    else
+        return vec4(1. + pos.y, 0, pos.x, -pos.z);
+}
+
+vec2 compProd(const vec2 a, const vec2 b){
+	return vec2(a.x * b.x - a.y * b.y,
+                a.x * b.y + a.y * b.x);
+}
+
 vec2 compQuot(const vec2 a, const vec2 b){
 	float denom = dot(b, b);
     return vec2((a.x * b.x + a.y * b.y) / denom,
@@ -98,7 +123,8 @@ vec2 conjugate(const vec2 a){
 	const vec2 conj = vec2(1, -1);
     return a * conj;
 }
-vec3 sphereFromCP1(vec4 p){
+
+vec3 sphereFromCP1(const vec4 p){
 	vec2 z1 = p.xy;
     vec2 z2 = p.zw;
     if(length(z2) > length(z1)){
@@ -112,78 +138,19 @@ vec3 sphereFromCP1(vec4 p){
     }
 }
 
-vec4 CP1FromSphere(vec3 pos){
-	if(pos.y < 0.)
-        return vec4(pos.x, pos.z, 1. - pos.y, 0);
-    else
-        return vec4(1. + pos.y, 0, pos.x, -pos.z);
-}
-
-vec2 equirectangularCoord(vec3 coordOnSphere){
-	vec3 dir = (coordOnSphere);
-    float l = atan(dir.z, dir.x);
-    if (l < 0.) l += TWO_PI;
-    return vec2(l, acos(dir.y));
-}
-
-struct SL2C{
-	vec2 a;
-    vec2 b;
-    vec2 c;
-    vec2 d;
-};
-
-vec2 compProd(const vec2 a, const vec2 b){
-	return vec2(a.x * b.x - a.y * b.y,
-                a.x * b.y + a.y * b.x);
-}
-
-vec4 applyMatVec(const SL2C m, const vec4 c){
-	return vec4(compProd(m.a, c.xy) + compProd(m.b, c.zw),
-                compProd(m.c, c.xy) + compProd(m.d, c.zw));
-}
-
-vec3 coordOnSphere(float theta, float phi){
-	return vec3(sin(phi) * cos(theta),
-                cos(phi),
-                sin(phi) * sin(theta));
+// mobius is SL(2, C), 2x2 complex number matrix
+// c is CP1
+vec4 applyMobiusArray(const float[8] mobius, const vec4 c){
+	return vec4(compProd(vec2(mobius[0], mobius[1]), c.xy) + compProd(vec2(mobius[2], mobius[3]), c.zw),
+                compProd(vec2(mobius[4], mobius[5]), c.xy) + compProd(vec2(mobius[6], mobius[7]), c.zw));
 }
 
 vec3 sphericalView(vec3 dir){
-    //    vec4 z = CP1FromSphere(dir);
-    vec2 angles = equirectangularCoord(dir);
-
-    SL2C mobius = SL2C(vec2(u_mobiusArray[0], u_mobiusArray[1]), vec2(u_mobiusArray[2], u_mobiusArray[3]),
-                       vec2(u_mobiusArray[4], u_mobiusArray[5]), vec2(u_mobiusArray[6], u_mobiusArray[7]));
-    vec4 z = CP1FromSphere(coordOnSphere(angles.x, angles.y));
-    angles = equirectangularCoord(sphereFromCP1(applyMatVec(mobius, z)));
-
-
-    float angle = -(angles.y * 0.63661977 - 1.0); // angles.y * 2/ PI
-    float blend = 0.5 - clamp(angle * 10.0, -0.5, 0.5);
-
-    vec2 orientation = vec2(cos(angles.x), sin(angles.x)) * 0.885; // R= 0.885?
-
-    vec2 size = vec2(textureSize(u_texture, 0));
-
-    float aspect = size.x * 0.25 / size.y;
-
-    vec2 radius_f = vec2( 0.25, aspect);
-    vec2 radius_b = vec2(-0.25, aspect);
-
-    vec2 center_f = vec2(0.75, aspect);
-    vec2 center_b = vec2(0.25, aspect);
-
-    vec4 color_f = degamma(texture(u_texture,
-                                   (1.0 - angle) * orientation * radius_f + center_f));
-    vec4 color_b = degamma(texture(u_texture,
-                                   (1.0 + angle) * orientation * radius_b + center_b));
-
-    //outColor = vec4(v_texCoord.xy, 0, 1);
-    //    outColor = (texture(u_texture, gl_FragCoord.xy/u_resolution));
-    return mix(color_f, color_b, blend).rgb;
-
-    //	return equirectangularMap(angles);
+    vec2 lnglat = equirectangularCoord(dir);
+    vec4 z = CP1FromSphere(coordOnSphere(lnglat.x, lnglat.y));
+    lnglat = equirectangularCoord(sphereFromCP1(applyMobiusArray(u_mobiusArray, z)));
+    vec4 texCol = texture(u_texture, vec2(-1, 1)* (vec2(0, 1)-lnglat/vec2(TWO_PI, PI)));
+    return degamma(texCol).rgb;
 }
 
 vec2 opUnion(vec2 d1, vec2 d2) {

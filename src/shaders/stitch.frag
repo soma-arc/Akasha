@@ -2,9 +2,8 @@
 precision mediump float;
 
 in vec2 v_texCoord;
-uniform sampler2D u_texture;
+uniform sampler2D u_dualFishEyeTexture;
 uniform vec2 u_resolution;
-uniform vec4 u_internalViewport;
 uniform float[8] u_mobiusArray;
 
 const float PI = 3.14159265359;
@@ -85,13 +84,34 @@ vec4 applyMobiusArray(const float[8] mobius, const vec4 c){
                 compProd(vec2(mobius[4], mobius[5]), c.xy) + compProd(vec2(mobius[6], mobius[7]), c.zw));
 }
 
-
 out vec4 outColor;
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution;
     vec2 lnglat = vec2(TWO_PI, PI) * uv;
+
     vec4 z = CP1FromSphere(coordOnSphere(lnglat.x, lnglat.y));
     lnglat = equirectangularCoord(sphereFromCP1(applyMobiusArray(u_mobiusArray, z)));
 
-    outColor = texture(u_texture, vec2(-1, 1)* (vec2(0, 1)-lnglat/vec2(TWO_PI, PI)));
+    //float angle = 2. * mod(uv.y, 1.) - 1.;  // [-1, 1]
+    float angle = (lnglat.y * 0.63661977 - 1.0); // angles.y * 2 / PI [-1, 1]
+    float blend = 0.5 - clamp(angle * 10.0, -0.5, 0.5);
+
+    vec2 orientation = vec2(cos(lnglat.x), sin(lnglat.x)) * 0.885; // R= 0.885?
+
+    vec2 size = vec2(textureSize(u_dualFishEyeTexture, 0));
+
+    float aspect = size.x * 0.25 / size.y;
+
+    vec2 radius_f = vec2( 0.25, aspect);
+    vec2 radius_b = vec2(-0.25, aspect);
+
+    vec2 center_f = vec2(0.75, aspect);
+    vec2 center_b = vec2(0.25, aspect);
+
+    vec4 color_f = degamma(texture(u_dualFishEyeTexture,
+                                   (1.0 - angle) * orientation * radius_f + center_f));
+    vec4 color_b = degamma(texture(u_dualFishEyeTexture,
+                                   (1.0 + angle) * orientation * radius_b + center_b));
+
+    outColor = gammaCorrect(mix(color_f, color_b, blend));
 }

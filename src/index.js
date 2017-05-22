@@ -1,4 +1,4 @@
-import { DualFishEyeCanvas, EquirectangularCanvas,
+import { RenderTextureCanvas, EquirectangularCanvas,
          InsideSphereCanvas, OutsideSphereCanvas } from './canvas.js';
 import ThetaStream from './theta.js';
 import { MobiusManager } from './mobius.js';
@@ -8,7 +8,7 @@ import { PI, TWO_PI, PI_2 } from './radians.js';
 window.addEventListener('load', () => {
     const thetaS = new ThetaStream();
     const mobius = new MobiusManager();
-    const fisheyeCanvas = new DualFishEyeCanvas('fisheyeCanvas',
+    const renderTexCanvas = new RenderTextureCanvas('renderTextureCanvas',
                                                 thetaS);
     const eqRectCanvas = new EquirectangularCanvas('equirectangularCanvas',
                                                    thetaS, mobius);
@@ -16,13 +16,14 @@ window.addEventListener('load', () => {
                                                       thetaS, mobius);
     const outsideSphereCanvas = new OutsideSphereCanvas('outsideSphereCanvas',
                                                         thetaS, mobius);
-    thetaS.connect([fisheyeCanvas.boundThetaStreamCallback,
+    thetaS.connect([renderTexCanvas.boundThetaStreamCallback,
                     eqRectCanvas.boundThetaStreamCallback,
                     insideSphereCanvas.boundThetaStreamCallback,
                     outsideSphereCanvas.boundThetaStreamCallback]);
 
     function renderLoop() {
-        fisheyeCanvas.render();
+        thetaS.updateTexture();
+        renderTexCanvas.render();
         eqRectCanvas.render();
         insideSphereCanvas.render();
         outsideSphereCanvas.render();

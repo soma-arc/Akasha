@@ -1,12 +1,8 @@
 import { getWebGL2Context, createRGBTextures, createSquareVbo,
          attachShader, linkProgram } from './glUtils';
 import { DegToRad } from './radians.js';
-
-const RENDER_VERTEX = require('./shaders/render.vert');
-const DUAL_FISH_EYE_FRAGMENT = require('./shaders/render.frag');
-const EQ_RECTANGULAR_FRAGMENT = require('./shaders/equirectangular.frag');
-const INSIDE_SPHERE_FRAGMENT = require('./shaders/insideSphere.frag');
-const OUTSIDE_SPHERE_FRAGMENT = require('./shaders/outsideSphere.frag');
+import { RENDER_VERTEX, RENDER_FRAGMENT, EQ_RECTANGULAR_FRAGMENT,
+         INSIDE_SPHERE_FRAGMENT, OUTSIDE_SPHERE_FRAGMENT} from './shaders/shaders.js';
 
 export class Canvas2D {
     constructor(canvasId, thetaStream, fragment) {
@@ -49,11 +45,10 @@ export class Canvas2D {
 
     updateThetaTexture() {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.thetaTexture);
-        if (this.thetaStream.streaming) {
-            this.gl.texImage2D(this.gl.TEXTURE_2D, 0,
-                               this.gl.RGBA, this.gl.RGBA,
-                               this.gl.UNSIGNED_BYTE, this.thetaStream.video);
-        }
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0,
+                           this.gl.RGBA, this.thetaStream.width, this.thetaStream.height,
+                           0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
+                           this.thetaStream.equirectangularTextureData);
     }
 
     getMousePosOnCanvas(event) {
@@ -76,9 +71,9 @@ export class Canvas2D {
     }
 }
 
-export class DualFishEyeCanvas extends Canvas2D {
+export class RenderTextureCanvas extends Canvas2D {
     constructor(canvasId, thetaStream) {
-        super(canvasId, thetaStream, DUAL_FISH_EYE_FRAGMENT);
+        super(canvasId, thetaStream, RENDER_FRAGMENT);
     }
 
     render() {
@@ -86,6 +81,7 @@ export class DualFishEyeCanvas extends Canvas2D {
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.updateThetaTexture();
+
         this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
