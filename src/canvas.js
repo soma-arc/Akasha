@@ -148,7 +148,7 @@ export class InsideSphereCanvas extends Canvas2D {
         this.canvas.addEventListener('mousedown', this.boundOnMouseDown);
         this.canvas.addEventListener('mousemove', this.boundOnMouseMove);
         this.canvas.addEventListener('mouseup', this.boundOnMouseRelease);
-        this.canvas.addEventListener('mousewheel', this.boundOnMouseWheel);
+        this.canvas.addEventListener('wheel', this.boundOnMouseWheel);
     }
 
     onMouseDown(event) {
@@ -172,7 +172,7 @@ export class InsideSphereCanvas extends Canvas2D {
     }
 
     onMouseWheel(event) {
-        this.fov -= event.wheelDelta * 0.05;
+        this.fov += Math.sign(event.deltaY) * 10;
         this.fov = Math.max(1, Math.min(this.fov, 180));
     }
 
@@ -238,7 +238,7 @@ export class OutsideSphereCanvas extends Canvas2D {
         this.canvas.addEventListener('mousemove', this.boundOnMouseMove);
         this.canvas.addEventListener('mouseup', this.boundOnMouseRelease);
         this.canvas.addEventListener('mouseout', this.boundOnMouseRelease);
-        this.canvas.addEventListener('mousewheel', this.boundOnMouseWheel);
+        this.canvas.addEventListener('wheel', this.boundOnMouseWheel);
     }
 
     onMouseDown(event) {
@@ -262,8 +262,10 @@ export class OutsideSphereCanvas extends Canvas2D {
     }
 
     onMouseWheel(event) {
-        if (event.wheelDelta < 0 || this.cameraDistance > 1) {
-            this.cameraDistance -= event.wheelDelta * 0.001;
+        if (event.deltaY > 0) {
+            this.cameraDistance *= 1.25;
+        } else if (this.cameraDistance > 1.1) {
+            this.cameraDistance /= 1.25;
         }
         this.updateCamera();
     }
