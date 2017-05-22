@@ -119,7 +119,7 @@ void main() {
     lnglat = equirectangularCoord(sphereFromCP1(applyMatVec(mobius, z)));
 
     //float angle = 2. * mod(uv.y, 1.) - 1.;  // [-1, 1]
-    float angle = lnglat.y * 0.63661977 - 1.0; // angles.y * 2 / PI
+    float angle = (lnglat.y * 0.63661977 - 1.0); // angles.y * 2 / PI
     float blend = 0.5 - clamp(angle * 10.0, -0.5, 0.5);
 
     vec2 orientation = vec2(cos(lnglat.x), sin(lnglat.x)) * 0.885; // R= 0.885?

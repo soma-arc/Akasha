@@ -7,7 +7,7 @@ export default class ThetaStream {
     }
 
     connect(canplayCallbacks) {
-        const media = {video: true, audio: false};
+        const media = { video: true, audio: false };
 
         const successCallback = (localMediaStream) => {
             this.video.src = window.URL.createObjectURL(localMediaStream);

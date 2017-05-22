@@ -3,6 +3,7 @@ import { DualFishEyeCanvas, EquirectangularCanvas,
 import ThetaStream from './theta.js';
 import { MobiusManager } from './mobius.js';
 import dat from '../lib/dat.gui/build/dat.gui.min.js';
+import { PI, TWO_PI, PI_2 } from './radians.js';
 
 window.addEventListener('load', () => {
     const thetaS = new ThetaStream();
@@ -29,10 +30,10 @@ window.addEventListener('load', () => {
     }
 
     const gui = new dat.GUI();
-    const controller = gui.add(mobius, 'rotation', 0, Math.PI * 2).step(0.01);
+    const controller = gui.add(mobius, 'rotation', 0, TWO_PI).step(0.01);
     controller.onChange(mobius.update.bind(mobius));
 
-    const translationController = gui.add(mobius, 'translation', -Math.PI / 2, Math.PI / 2).step(0.01);
+    const translationController = gui.add(mobius, 'translation', -PI_2, PI_2).step(0.01);
     translationController.onChange(mobius.update.bind(mobius));
 
     const zoomController = gui.add(mobius, 'zoomFactor', 0.1, 10).step(0.01);

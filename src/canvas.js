@@ -1,15 +1,12 @@
 import { getWebGL2Context, createRGBTextures, createSquareVbo,
          attachShader, linkProgram } from './glUtils';
+import { DegToRad } from './radians.js';
 
-function DegToRad(degrees) {
-    return degrees * Math.PI / 180;
-}
-
-const RENDER_VERTEX = require('./render.vert');
-const DUAL_FISH_EYE_FRAGMENT = require('./render.frag');
-const EQ_RECTANGULAR_FRAGMENT = require('./equirectangular.frag');
-const INSIDE_SPHERE_FRAGMENT = require('./insideSphere.frag');
-const OUTSIDE_SPHERE_FRAGMENT = require('./outsideSphere.frag');
+const RENDER_VERTEX = require('./shaders/render.vert');
+const DUAL_FISH_EYE_FRAGMENT = require('./shaders/render.frag');
+const EQ_RECTANGULAR_FRAGMENT = require('./shaders/equirectangular.frag');
+const INSIDE_SPHERE_FRAGMENT = require('./shaders/insideSphere.frag');
+const OUTSIDE_SPHERE_FRAGMENT = require('./shaders/outsideSphere.frag');
 
 export class Canvas2D {
     constructor(canvasId, thetaStream, fragment) {

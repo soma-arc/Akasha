@@ -2,9 +2,7 @@ import assert from 'power-assert';
 import Complex from './complex.js';
 import SL2C from './sl2c.js';
 import Vec3 from './vec3.js';
-
-const TWO_PI = Math.PI;
-const PI_2 = Math.PI / 2;
+import { PI, TWO_PI, PI_2 } from './radians.js';
 
 // This code is based on spherical_image_editing by Henry Segerman
 // http://elevr.com/spherical-video-editing-effects-with-mobius-transformations/
@@ -239,11 +237,11 @@ export class MobiusManager {
         this.sl2cMatrix = RotateAroundAxis(CoordOnSphere(this.axisLng,
                                                          this.axisLat),
                                            this.rotation);
-        this.sl2cMatrix = this.sl2cMatrix.mult(TranslateAlongAxis(CoordOnSphere(Math.PI, 0),
-                                                                  CoordOnSphere(Math.PI, Math.PI),
-                                                                  CoordOnSphere(Math.PI, PI_2),
-                                                                  CoordOnSphere(Math.PI, PI_2 + this.translation)));
-        this.sl2cMatrix = this.sl2cMatrix.mult(ZoomIn(CoordOnSphere(Math.PI, PI_2),
+        this.sl2cMatrix = this.sl2cMatrix.mult(TranslateAlongAxis(CoordOnSphere(PI, 0),
+                                                                  CoordOnSphere(PI, PI),
+                                                                  CoordOnSphere(PI, PI_2),
+                                                                  CoordOnSphere(PI, PI_2 + this.translation)));
+        this.sl2cMatrix = this.sl2cMatrix.mult(ZoomIn(CoordOnSphere(PI, PI_2),
                                                       new Complex(this.zoomFactor, 0)));
     }
 
