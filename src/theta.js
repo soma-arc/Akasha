@@ -1,7 +1,8 @@
 import { getWebGL2Context, createSquareVbo, attachShader,
          linkProgram, createRGBTextures } from './glUtils.js';
 import { RENDER_VERTEX, STITCH_FRAGMENT } from './shaders/shaders.js';
-import SL2C from './sl2c.js';
+import { CoordOnSphere, RotateAroundAxis } from './mobius.js';
+import { PI_2 } from './radians.js';
 
 export default class ThetaStream {
     constructor() {
@@ -39,7 +40,7 @@ export default class ThetaStream {
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_mobiusArray'));
 
-        this.mobius = SL2C.UNIT.inverse();
+        this.mobius = RotateAroundAxis(CoordOnSphere(PI_2, PI_2), PI_2);
 
         this.textureDataContainer = new Uint8Array(this.width * this.height * 4);
     }
