@@ -48,7 +48,7 @@ export default class Vec3 {
     static dot (a, b) {
         assert.ok(a instanceof Vec3);
         assert.ok(b instanceof Vec3);
-        return a.x * b.x + b.y * b.y + a.z * b.z;
+        return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
     static cross (a, b) {
