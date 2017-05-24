@@ -1,7 +1,8 @@
 import { RenderTextureCanvas, EquirectangularCanvas,
          InsideSphereCanvas, OutsideSphereCanvas } from './canvas.js';
 import ThetaStream from './theta.js';
-import { MobiusManager } from './mobius.js';
+import { MobiusManager, MobiusRotateAroundAxis,
+         MobiusTranslateAlongAxis, MobiusZoomIn } from './mobius.js';
 import dat from '../lib/dat.gui/build/dat.gui.min.js';
 import { PI, TWO_PI, PI_2 } from './radians.js';
 
@@ -30,14 +31,33 @@ window.addEventListener('load', () => {
         requestAnimationFrame(renderLoop);
     }
 
+    const m = new MobiusRotateAroundAxis(PI_2, PI_2, 0);
+    mobius.addTransformation(m);
     const gui = new dat.GUI();
-    const controller = gui.add(mobius, 'rotation', 0, TWO_PI).step(0.01);
-    controller.onChange(mobius.update.bind(mobius));
+    const controller = gui.add(m, 'theta', 0, TWO_PI).step(0.01);
+    controller.onChange(() => {
+        m.update();
+        mobius.update();
+    });
 
-    const translationController = gui.add(mobius, 'translation', -PI_2, PI_2).step(0.01);
-    translationController.onChange(mobius.update.bind(mobius));
+    const translate = new MobiusTranslateAlongAxis(PI, 0,
+                                                   PI, PI,
+                                                   PI, PI_2,
+                                                   PI, PI_2);
+    mobius.addTransformation(translate);
+    const translateController = gui.add(translate, 'translationY', -PI_2, PI_2).step(0.01);
+    translateController.onChange(() => {
+        translate.update();
+        mobius.update();
+    });
 
-    const zoomController = gui.add(mobius, 'zoomFactor', 0.1, 10).step(0.01);
-    zoomController.onChange(mobius.update.bind(mobius));
+    const zoom = new MobiusZoomIn(PI, PI_2, 1, 0);
+    mobius.addTransformation(zoom);
+    const zoomController = gui.add(zoom, 'zoomReal', 0.5, 5).step(0.01);
+    zoomController.onChange(() => {
+        zoom.update();
+        mobius.update();
+    });
+
     renderLoop();
 });

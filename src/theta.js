@@ -1,7 +1,7 @@
 import { getWebGL2Context, createSquareVbo, attachShader,
          linkProgram, createRGBTextures } from './glUtils.js';
 import { RENDER_VERTEX, STITCH_FRAGMENT } from './shaders/shaders.js';
-import { CoordOnSphere, RotateAroundAxis } from './mobius.js';
+import { MobiusRotateAroundAxis } from './mobius.js';
 import { PI_2 } from './radians.js';
 
 export default class ThetaStream {
@@ -40,7 +40,7 @@ export default class ThetaStream {
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_mobiusArray'));
 
-        this.mobius = RotateAroundAxis(CoordOnSphere(PI_2, PI_2), PI_2);
+        this.mobius = new MobiusRotateAroundAxis(PI_2, PI_2, PI_2);
 
         this.textureDataContainer = new Uint8Array(this.width * this.height * 4);
     }
@@ -98,7 +98,7 @@ export default class ThetaStream {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.thetaTexture);
         this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.width, this.height);
-        this.gl.uniform1fv(this.uniLocations[2], this.mobius.linearArray);
+        this.gl.uniform1fv(this.uniLocations[2], this.mobius.sl2c.linearArray);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
                                     this.gl.FLOAT, false, 0, 0);
