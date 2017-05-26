@@ -4,11 +4,11 @@ import { RENDER_VERTEX, STITCH_FRAGMENT } from './shaders/shaders.js';
 import { MobiusRotateAroundAxis } from './mobius.js';
 import { PI_2 } from './radians.js';
 
-export default class ThetaStream {
-    constructor() {
+export class ThetaStream {
+    constructor (enableStitching) {
         this.video = document.createElement('video');
         this.streaming = false;
-        this.enableStitching = true;
+        this.enableStitching = enableStitching;
         this.width = 256;
         this.height = 256;
 
@@ -61,8 +61,8 @@ export default class ThetaStream {
                 this.stitchedTexture = createRGBTextures(this.gl,
                                                          this.width, this.height, 1)[0];
                 this.textureDataContainer = new Uint8Array(this.width * this.height * 4);
-                for (const callback of canplayCallbacks) {
-                    callback(this.video);
+                for (const initTexture of canplayCallbacks) {
+                    initTexture(this.width, this.height);
                 }
             }
             this.video.addEventListener('canplay', canplayListener);
@@ -106,7 +106,7 @@ export default class ThetaStream {
         this.gl.flush();
     }
 
-    updateTexture () {
+    update () {
         if (!this.streaming) return;
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.thetaTexture);
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0,
@@ -132,6 +132,36 @@ export default class ThetaStream {
             return this.textureDataContainer;
         } else {
             return this.video;
+        }
+    }
+}
+
+export class TextureHandler {
+    constructor (canvases, video) {
+        this.video = video;
+        this.canvasInitFunctions = canvases.map((c) => {
+            return c.boundInitPanoramaTexture;
+        });
+        this.video.connect(this.canvasInitFunctions);
+        this.useVideo = true;
+        this.canvases = canvases;
+    }
+
+    update () {
+        this.updateVideoFrame();
+        this.updatePanoramaTexture();
+    }
+
+    updateVideoFrame () {
+        if (!this.useVideo) return;
+        this.video.update();
+    }
+
+    updatePanoramaTexture () {
+        if (!this.useVideo) return;
+        for (const canvas of this.canvases) {
+            canvas.updatePanoramaTexture(this.video.equirectangularTextureData,
+                                         this.video.width, this.video.height);
         }
     }
 }

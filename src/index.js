@@ -1,29 +1,27 @@
 import { RenderTextureCanvas, EquirectangularCanvas,
          InsideSphereCanvas, OutsideSphereCanvas } from './canvas.js';
-import ThetaStream from './theta.js';
+import { ThetaStream, TextureHandler } from './texture.js';
 import { MobiusManager, MobiusRotateAroundAxis,
          MobiusTranslateAlongAxis, MobiusZoomIn } from './mobius.js';
 import dat from '../lib/dat.gui/build/dat.gui.min.js';
 import { PI, TWO_PI, PI_2 } from './radians.js';
 
 window.addEventListener('load', () => {
-    const thetaS = new ThetaStream();
     const mobius = new MobiusManager();
-    const renderTexCanvas = new RenderTextureCanvas('renderTextureCanvas',
-                                                thetaS);
+    const thetaS = new ThetaStream(true);
+    const renderTexCanvas = new RenderTextureCanvas('renderTextureCanvas');
     const eqRectCanvas = new EquirectangularCanvas('equirectangularCanvas',
-                                                   thetaS, mobius);
+                                                   mobius);
     const insideSphereCanvas = new InsideSphereCanvas('insideSphereCanvas',
-                                                      thetaS, mobius);
+                                                      mobius);
     const outsideSphereCanvas = new OutsideSphereCanvas('outsideSphereCanvas',
-                                                        thetaS, mobius);
-    thetaS.connect([renderTexCanvas.boundThetaStreamCallback,
-                    eqRectCanvas.boundThetaStreamCallback,
-                    insideSphereCanvas.boundThetaStreamCallback,
-                    outsideSphereCanvas.boundThetaStreamCallback]);
+                                                        mobius);
+    const canvasList = [renderTexCanvas, eqRectCanvas,
+                        insideSphereCanvas, outsideSphereCanvas];
+    const texHandler = new TextureHandler(canvasList, thetaS);
 
     function renderLoop() {
-        thetaS.updateTexture();
+        texHandler.update();
         renderTexCanvas.render();
         eqRectCanvas.render();
         insideSphereCanvas.render();

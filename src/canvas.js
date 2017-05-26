@@ -5,10 +5,9 @@ import { RENDER_VERTEX, RENDER_FRAGMENT, EQ_RECTANGULAR_FRAGMENT,
          INSIDE_SPHERE_FRAGMENT, OUTSIDE_SPHERE_FRAGMENT} from './shaders/shaders.js';
 
 export class Canvas2D {
-    constructor(canvasId, thetaStream, fragment) {
+    constructor(canvasId, fragment) {
         this.canvas = document.getElementById(canvasId);
         this.gl = getWebGL2Context(this.canvas);
-        this.thetaStream = thetaStream;
 
         this.vertexBuffer = createSquareVbo(this.gl);
         this.canvasRatio = this.canvas.width / this.canvas.height / 2;
@@ -26,7 +25,7 @@ export class Canvas2D {
                                                              'a_vertex');
         this.gl.enableVertexAttribArray(this.renderCanvasVAttrib);
 
-        this.thetaTexture = createRGBTextures(this.gl, 256, 256, 1)[0];
+        this.panoramaTexture = createRGBTextures(this.gl, 256, 256, 1)[0];
 
         this.uniLocations = [];
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
@@ -34,21 +33,18 @@ export class Canvas2D {
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_resolution'));
 
-        this.boundThetaStreamCallback = this.thetaStreamCanplayCallback.bind(this);
+        this.boundInitPanoramaTexture = this.initPanoramaTexture.bind(this);
     }
 
-    thetaStreamCanplayCallback(video) {
-        console.log(`resolution(${video.videoWidth}, ${video.videoHeight})`);
-        this.thetaTexture = createRGBTextures(this.gl, video.videoWidth,
-                                              video.videoHeight, 1)[0];
+    initPanoramaTexture (width, height) {
+        this.panoramaTexture = createRGBTextures(this.gl, width, height, 1)[0];
     }
 
-    updateThetaTexture() {
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.thetaTexture);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0,
-                           this.gl.RGBA, this.thetaStream.width, this.thetaStream.height,
-                           0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
-                           this.thetaStream.equirectangularTextureData);
+    updatePanoramaTexture (data, width, height) {
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.panoramaTexture);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA,
+                           width, height, 0, this.gl.RGBA,
+                           this.gl.UNSIGNED_BYTE, data);
     }
 
     getMousePosOnCanvas(event) {
@@ -60,8 +56,7 @@ export class Canvas2D {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
-        this.updateThetaTexture();
-        this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
+        this.gl.uniform1i(this.uniLocations[0], this.panoramaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
@@ -72,17 +67,16 @@ export class Canvas2D {
 }
 
 export class RenderTextureCanvas extends Canvas2D {
-    constructor(canvasId, thetaStream) {
-        super(canvasId, thetaStream, RENDER_FRAGMENT);
+    constructor(canvasId) {
+        super(canvasId, RENDER_FRAGMENT);
     }
 
     render() {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
-        this.updateThetaTexture();
 
-        this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
+        this.gl.uniform1i(this.uniLocations[0], this.panoramaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
@@ -93,8 +87,8 @@ export class RenderTextureCanvas extends Canvas2D {
 }
 
 export class EquirectangularCanvas extends Canvas2D {
-    constructor(canvasId, thetaStream, mobiusMngr) {
-        super(canvasId, thetaStream, EQ_RECTANGULAR_FRAGMENT);
+    constructor(canvasId, mobiusMngr) {
+        super(canvasId, EQ_RECTANGULAR_FRAGMENT);
 
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_mobiusArray'));
@@ -105,8 +99,8 @@ export class EquirectangularCanvas extends Canvas2D {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
-        this.updateThetaTexture();
-        this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
+
+        this.gl.uniform1i(this.uniLocations[0], this.panoramaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
         this.gl.uniform1fv(this.uniLocations[2], this.mobiusMngr.sl2cMatrixArray);
 
@@ -119,8 +113,8 @@ export class EquirectangularCanvas extends Canvas2D {
 }
 
 export class InsideSphereCanvas extends Canvas2D {
-    constructor(canvasId, thetaStream, mobiusMngr) {
-        super(canvasId, thetaStream, INSIDE_SPHERE_FRAGMENT);
+    constructor(canvasId, mobiusMngr) {
+        super(canvasId, INSIDE_SPHERE_FRAGMENT);
 
         this.mobiusMngr = mobiusMngr;
 
@@ -129,7 +123,7 @@ export class InsideSphereCanvas extends Canvas2D {
         this.fov = 60;
         this.up = [0, 1, 0];
 
-        this.lnglat = [0, 0];
+        this.lnglat = [180, 0];
         this.mouseDownLngLat = [0, 0];
         this.isMousePressing = false;
         this.updateCamera();
@@ -190,8 +184,8 @@ export class InsideSphereCanvas extends Canvas2D {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
-        this.updateThetaTexture();
-        this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
+
+        this.gl.uniform1i(this.uniLocations[0], this.panoramaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
         this.gl.uniform1fv(this.uniLocations[2], this.mobiusMngr.sl2cMatrixArray);
         this.gl.uniform3f(this.uniLocations[3],
@@ -207,8 +201,8 @@ export class InsideSphereCanvas extends Canvas2D {
 }
 
 export class OutsideSphereCanvas extends Canvas2D {
-    constructor(canvasId, thetaStream, mobiusMngr) {
-        super(canvasId, thetaStream, OUTSIDE_SPHERE_FRAGMENT);
+    constructor(canvasId, mobiusMngr) {
+        super(canvasId, OUTSIDE_SPHERE_FRAGMENT);
 
         this.mobiusMngr = mobiusMngr;
 
@@ -284,8 +278,7 @@ export class OutsideSphereCanvas extends Canvas2D {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
-        this.updateThetaTexture();
-        this.gl.uniform1i(this.uniLocations[0], this.thetaTexture);
+        this.gl.uniform1i(this.uniLocations[0], this.panoramaTexture);
         this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
         this.gl.uniform1fv(this.uniLocations[2], this.mobiusMngr.sl2cMatrixArray);
         this.gl.uniform3f(this.uniLocations[3],
