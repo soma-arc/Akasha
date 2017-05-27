@@ -26,6 +26,7 @@ export class Canvas2D {
         this.gl.enableVertexAttribArray(this.renderCanvasVAttrib);
 
         this.panoramaTexture = createRGBTextures(this.gl, 256, 256, 1)[0];
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.panoramaTexture);
 
         this.uniLocations = [];
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,

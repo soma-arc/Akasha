@@ -45,7 +45,7 @@ export class ThetaStream {
         this.textureDataContainer = new Uint8Array(this.width * this.height * 4);
     }
 
-    connect(canplayCallbacks) {
+    connect(canplayCallback, failure) {
         const media = { video: true, audio: false };
 
         const successCallback = (localMediaStream) => {
@@ -61,15 +61,14 @@ export class ThetaStream {
                 this.stitchedTexture = createRGBTextures(this.gl,
                                                          this.width, this.height, 1)[0];
                 this.textureDataContainer = new Uint8Array(this.width * this.height * 4);
-                for (const initTexture of canplayCallbacks) {
-                    initTexture(this.width, this.height);
-                }
+                canplayCallback(this.width, this.height);
             }
             this.video.addEventListener('canplay', canplayListener);
             this.video.play();
         }
 
         const failureCallback = (err) => {
+            failure();
             if (err.name === 'PermissionDeniedError') {
                 alert('denied permission');
             } else {
@@ -136,32 +135,51 @@ export class ThetaStream {
     }
 }
 
+const DEFAULT_CHECKER_TEXTURE = require('./img/checker.png');
+
 export class TextureHandler {
     constructor (canvases, video) {
         this.video = video;
         this.canvasInitFunctions = canvases.map((c) => {
             return c.boundInitPanoramaTexture;
         });
-        this.video.connect(this.canvasInitFunctions);
+        this.video.connect(this.initCanvasTextures,
+                           () => {
+                               this.initCanvasTextures(this.defaultTexture.width,
+                                                       this.defaultTexture.height);
+                               this.updatePanoramaTexture(this.defaultTexture,
+                                                          this.defaultTexture.width,
+                                                          this.defaultTexture.height);
+                           });
         this.useVideo = true;
         this.canvases = canvases;
+
+        this.defaultTexture = new Image();
+        this.defaultTexture.src = DEFAULT_CHECKER_TEXTURE;
     }
 
     update () {
-        this.updateVideoFrame();
-        this.updatePanoramaTexture();
+        if (this.useVideo && this.video.streaming) {
+            this.updateVideoFrame();
+            this.updatePanoramaTexture(this.video.equirectangularTextureData,
+                                       this.video.width,
+                                       this.video.height);
+        }
     }
 
     updateVideoFrame () {
-        if (!this.useVideo) return;
         this.video.update();
     }
 
-    updatePanoramaTexture () {
-        if (!this.useVideo) return;
+    updatePanoramaTexture (textureData, width, height) {
         for (const canvas of this.canvases) {
-            canvas.updatePanoramaTexture(this.video.equirectangularTextureData,
-                                         this.video.width, this.video.height);
+            canvas.updatePanoramaTexture(textureData, width, height);
+        }
+    }
+
+    initCanvasTextures (width, height) {
+        for (const initTexture of this.canvasInitFunctions) {
+            initTexture(width, height);
         }
     }
 }
