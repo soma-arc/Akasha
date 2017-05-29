@@ -147,6 +147,7 @@ export class InsideSphereCanvas extends Canvas2D {
     }
 
     onMouseDown(event) {
+        event.preventDefault();
         this.isMousePressing = true;
         this.mouseDownXY = this.getMousePosOnCanvas(event);
         this.mouseDownLngLat = [this.lnglat[0], this.lnglat[1]];
@@ -167,6 +168,7 @@ export class InsideSphereCanvas extends Canvas2D {
     }
 
     onMouseWheel(event) {
+        event.preventDefault();
         this.fov += Math.sign(event.deltaY) * 10;
         this.fov = Math.max(1, Math.min(this.fov, 180));
     }
@@ -237,6 +239,7 @@ export class OutsideSphereCanvas extends Canvas2D {
     }
 
     onMouseDown(event) {
+        event.preventDefault();
         this.isMousePressing = true;
         this.mouseDownXY = this.getMousePosOnCanvas(event);
         this.mouseDownLngLat = [this.lnglat[0], this.lnglat[1]];
@@ -257,6 +260,7 @@ export class OutsideSphereCanvas extends Canvas2D {
     }
 
     onMouseWheel(event) {
+        event.preventDefault();
         if (event.deltaY > 0) {
             this.cameraDistance *= 1.25;
         } else if (this.cameraDistance > 1.1) {
