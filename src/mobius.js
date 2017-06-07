@@ -237,15 +237,34 @@ export class MobiusZoomIn extends Mobius {
         super();
         this.zoomReal = zoomReal;
         this.zoomImag = zoomImag;
-        this.p = CoordOnSphere(lng, lat);
-        this.zoomFactor = new Complex(zoomReal, zoomImag)
+        this.lng = lng;
+        this.lat = lat;
 
         this.update();
+
+        this.uniformObjIndex = 0;
+    }
+
+    setUniformLocation(gl, uniLocations, program, index) {
+        uniLocations.push(gl.getUniformLocation(program,
+                                                `u_mobiusZoomIn${index}`));
+    }
+
+    setUniformValues(gl, uniLocation, uniIndex) {
+        let uniI = uniIndex;
+        gl.uniform4f(uniLocation[uniI++],
+                     this.lng, this.lat, this.zoomReal, this.zoomImag);
+        return uniI;
     }
 
     update () {
+        this.p = CoordOnSphere(this.lng, this.lat);
         this.zoomFactor = new Complex(this.zoomReal, this.zoomImag);
         this.sl2c = Mobius.zoomIn(this.p, this.zoomFactor);
+    }
+
+    getClassName () {
+        return 'MobiusZoomIn';
     }
 }
 
@@ -256,16 +275,32 @@ export class MobiusRotateAroundAxis extends Mobius {
         assert.ok(typeof lat === 'number');
         assert.ok(typeof theta === 'number');
 
-        this.sphereLng = lng;
-        this.sphereLat = lat;
-        this.p = CoordOnSphere(lng, lat);
+        this.lng = lng;
+        this.lat = lat;
         this.theta = theta;
 
         this.update();
+        this.uniformObjIndex = 0;
+    }
+
+    setUniformLocation(gl, uniLocations, program, index) {
+        uniLocations.push(gl.getUniformLocation(program,
+                                                `u_mobiusRotateAroundAxis${index}`));
+    }
+
+    setUniformValues(gl, uniLocation, uniIndex) {
+        let uniI = uniIndex;
+        gl.uniform2f(uniLocation[uniI++], this.lng, this.lat);
+        return uniI;
     }
 
     update () {
+        this.p = CoordOnSphere(this.lng, this.lat);
         this.sl2c = Mobius.rotateAroundAxis(this.p, this.theta);
+    }
+
+    getClassName () {
+        return 'MobiusRotateAroundAxis';
     }
 }
 
@@ -284,9 +319,26 @@ export class MobiusTranslateAlongAxis extends Mobius {
         this.update();
     }
 
+    setUniformLocation(gl, uniLocations, program, index) {
+        uniLocations.push(gl.getUniformLocation(program,
+                                                `u_mobiusTranslateAlongAxis${index}`));
+    }
+
+    setUniformValues(gl, uniLocation, uniIndex) {
+        let uniI = uniIndex;
+        gl.uniform2fv(uniLocation[uniI++],
+                      [this.pLng, this.pLat, this.qLng, this.qLat,
+                       this.r1Lng, this.r1Lat, this.r2Lng, this.r2Lat]);
+        return uniI;
+    }
+
     update () {
         this.r2 = CoordOnSphere(this.r2Lng, this.r2Lat + this.translationY);
         this.sl2c = Mobius.translateAlongAxis(this.p, this.q, this.r1, this.r2);
+    }
+
+    getClassName () {
+        return 'MobiusTranslateAlongAxis';
     }
 }
 
@@ -313,6 +365,38 @@ export class MobiusManager {
                 return prev.mult(curr);
             });
         }
+    }
+
+    setUniformLocations (gl, uniLocations, program) {
+        const genNums = {};
+        for (const gen of this.transformations) {
+            const genName = gen.getClassName();
+            if (genNums[genName] === undefined) {
+                genNums[genName] = 0;
+            }
+            gen.setUniformLocation(gl, uniLocations, program, genNums[genName]);
+            genNums[genName]++;
+        }
+    }
+
+    setUniformValues (gl, uniLocations, index) {
+        let uniI = index;
+        for (const gen of this.transformations) {
+            uniI = gen.setUniformValues(gl, uniLocations, uniI);
+        }
+        return uniI;
+    }
+
+    getSceneContext () {
+        const context = {};
+        for (const gen of this.transformations) {
+            const genName = `num${gen.getClassName()}`;
+            if (context[genName] === undefined) {
+                context[genName] = 0;
+            }
+            context[genName]++;
+        }
+        return context;
     }
 
     get sl2cMatrixArray () {

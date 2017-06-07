@@ -2,7 +2,8 @@ import { getWebGL2Context, createRGBTextures, createSquareVbo,
          attachShader, linkProgram } from './glUtils';
 import { DegToRad } from './radians.js';
 import { RENDER_VERTEX, RENDER_FRAGMENT, EQ_RECTANGULAR_FRAGMENT,
-         INSIDE_SPHERE_FRAGMENT, OUTSIDE_SPHERE_FRAGMENT} from './shaders/shaders.js';
+         INSIDE_SPHERE_FRAGMENT, OUTSIDE_SPHERE_FRAGMENT,
+         EQ_RECTANGULAR_TMPL } from './shaders/shaders.js';
 
 export class Canvas2D {
     constructor(canvasId, fragment) {
@@ -89,10 +90,11 @@ export class RenderTextureCanvas extends Canvas2D {
 
 export class EquirectangularCanvas extends Canvas2D {
     constructor(canvasId, mobiusMngr) {
-        super(canvasId, EQ_RECTANGULAR_FRAGMENT);
+        super(canvasId, EQ_RECTANGULAR_TMPL.render(mobiusMngr.getSceneContext()));
 
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_mobiusArray'));
+        mobiusMngr.setUniformLocations(this.gl, this.uniLocations, this.renderProgram);
         this.mobiusMngr = mobiusMngr;
     }
 
@@ -101,9 +103,11 @@ export class EquirectangularCanvas extends Canvas2D {
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
 
-        this.gl.uniform1i(this.uniLocations[0], this.panoramaTexture);
-        this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
-        this.gl.uniform1fv(this.uniLocations[2], this.mobiusMngr.sl2cMatrixArray);
+        let uniI = 0;
+        this.gl.uniform1i(this.uniLocations[uniI++], this.panoramaTexture);
+        this.gl.uniform2f(this.uniLocations[uniI++], this.canvas.width, this.canvas.height);
+        this.gl.uniform1fv(this.uniLocations[uniI++], this.mobiusMngr.sl2cMatrixArray);
+        uniI = this.mobiusMngr.setUniformValues(this.gl, this.uniLocations, uniI);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
