@@ -1,9 +1,10 @@
 import { getWebGL2Context, createRGBTextures, createSquareVbo,
          attachShader, linkProgram } from './glUtils';
-import { DegToRad } from './radians.js';
+import { DegToRad, TWO_PI, PI } from './radians.js';
 import { RENDER_VERTEX, RENDER_FRAGMENT, EQ_RECTANGULAR_FRAGMENT,
          INSIDE_SPHERE_FRAGMENT, OUTSIDE_SPHERE_FRAGMENT,
          EQ_RECTANGULAR_TMPL } from './shaders/shaders.js';
+import Complex from './complex.js';
 
 export class Canvas2D {
     constructor(canvasId, fragment) {
@@ -96,6 +97,35 @@ export class EquirectangularCanvas extends Canvas2D {
                                                           'u_mobiusArray'));
         mobiusMngr.setUniformLocations(this.gl, this.uniLocations, this.renderProgram);
         this.mobiusMngr = mobiusMngr;
+
+        this.isMousePressing = false;
+        this.boundOnMouseDown = this.onMouseDown.bind(this);
+        this.boundOnMouseMove = this.onMouseMove.bind(this);
+        this.boundOnMouseRelease = this.onMouseRelease.bind(this);
+        this.canvas.addEventListener('mousedown', this.boundOnMouseDown);
+        this.canvas.addEventListener('mousemove', this.boundOnMouseMove);
+        this.canvas.addEventListener('mouseup', this.boundOnMouseRelease);
+    }
+
+    onMouseDown(event) {
+        event.preventDefault();
+        this.isMousePressing = true;
+        this.mouseDownXY = this.getMousePosOnCanvas(event);
+        this.mobiusMngr.select(new Complex(TWO_PI * this.mouseDownXY[0] / this.canvas.width,
+                                           PI * Math.abs(this.mouseDownXY[1] / this.canvas.height -1)));
+    }
+
+    onMouseMove(event) {
+        event.preventDefault();
+        if (this.isMousePressing) {
+            const mouse = this.getMousePosOnCanvas(event);
+            this.mobiusMngr.move(new Complex(TWO_PI * mouse[0] / this.canvas.width,
+                                             PI * Math.abs(mouse[1] / this.canvas.height - 1)));
+        }
+    }
+
+    onMouseRelease(event) {
+        this.isMousePressing = false;
     }
 
     render() {

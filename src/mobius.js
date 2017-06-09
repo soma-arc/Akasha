@@ -5,7 +5,7 @@ import Vec3 from './vec3.js';
 import { PI, TWO_PI, PI_2 } from './radians.js';
 
 // This code is based on spherical_image_editing by Henry Segerman
-// http://elevr.com/spherical-video-editing-effects-with-mobius-transformations/
+// https://github.com/henryseg/spherical_image_editing
 // See also http://elevr.com/spherical-video-editing-effects-with-mobius-transformations/
 
 class CP1 {
@@ -81,6 +81,12 @@ class Mobius {
     constructor () {
         this.sl2c = SL2C.UNIT;
     }
+
+    select (lnglat) {
+        return new SelectionState();
+    }
+
+    move (lnglat) {}
 
     // computes SL(2, C) that sends the three points infinity, zero, one to given points p, q, r
     static infZeroOneToTriple (p, q, r) {
@@ -302,6 +308,26 @@ export class MobiusRotateAroundAxis extends Mobius {
     getClassName () {
         return 'MobiusRotateAroundAxis';
     }
+
+    select (lnglat) {
+        const dp = lnglat.sub(new Complex(this.lng, this.lat));
+        const d = dp.length();
+        if (d > 0.1) return new SelectionState();
+
+        return new SelectionState().setObj(this).setDiffObj(dp);
+    }
+
+    /**
+     *
+     * @param {SelectionState} selectionState
+     * @param {Complex} lnglat
+     */
+    move (selectionState, lnglat) {
+        const nlnglat = lnglat.sub(selectionState.diffObj);
+        this.lng = nlnglat.re;
+        this.lat = nlnglat.im;
+        this.update();
+    }
 }
 
 export class MobiusTranslateAlongAxis extends Mobius {
@@ -342,10 +368,70 @@ export class MobiusTranslateAlongAxis extends Mobius {
     }
 }
 
+class SelectionState {
+    constructor () {
+        this.selectedObj = undefined;
+        this.componentId = -1;
+        // difference between mouse and the object
+        // (e.g. center of the circle)
+        this.diffObj = -1;
+    }
+
+    setObj (obj) {
+        this.selectedObj = obj;
+        return this;
+    }
+
+    /**
+     * @param {Complex} diffObj
+     * @returns {Mobius}
+     */
+    setDiffObj (diffObj) {
+        this.diffObj = diffObj;
+        return this;
+    }
+
+    isSelectingObj () {
+        return this.selectedObj !== undefined;
+    }
+}
+
 export class MobiusManager {
     constructor () {
         this.sl2cMatrix = SL2C.UNIT;
         this.transformations = [];
+        this.selectionState = new SelectionState();
+    }
+
+    /**
+     *
+     * @param {Complex} lnglat
+     * @return {boolean}
+     */
+    select (lnglat) {
+        for (const mobius of this.transformations) {
+            const state = mobius.select(lnglat);
+            if (state.isSelectingObj()) {
+                this.selectionState = state;
+                return true;
+            }
+        }
+        this.selectionState = new SelectionState();
+        return false;
+    }
+
+    /**
+     *
+     * @param {Complex} lnglat
+     * @returns {boolean}
+     */
+    move (lnglat) {
+        if (this.selectionState.isSelectingObj()) {
+            this.selectionState.selectedObj.move(this.selectionState, lnglat);
+            this.update();
+            return true;
+        }
+        return false;
     }
 
     addTransformation (transformation) {
