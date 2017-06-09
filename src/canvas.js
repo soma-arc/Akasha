@@ -3,7 +3,7 @@ import { getWebGL2Context, createRGBTextures, createSquareVbo,
 import { DegToRad, TWO_PI, PI } from './radians.js';
 import { RENDER_VERTEX, RENDER_FRAGMENT, EQ_RECTANGULAR_FRAGMENT,
          INSIDE_SPHERE_FRAGMENT, OUTSIDE_SPHERE_FRAGMENT,
-         EQ_RECTANGULAR_TMPL } from './shaders/shaders.js';
+         EQ_RECTANGULAR_TMPL, OUTSIDE_SPHERE_TMPL } from './shaders/shaders.js';
 import Complex from './complex.js';
 
 export class Canvas2D {
@@ -239,7 +239,7 @@ export class InsideSphereCanvas extends Canvas2D {
 
 export class OutsideSphereCanvas extends Canvas2D {
     constructor(canvasId, mobiusMngr) {
-        super(canvasId, OUTSIDE_SPHERE_FRAGMENT);
+        super(canvasId, OUTSIDE_SPHERE_TMPL.render(mobiusMngr.getSceneContext()));
 
         this.mobiusMngr = mobiusMngr;
 
@@ -260,6 +260,7 @@ export class OutsideSphereCanvas extends Canvas2D {
                                                           'u_cameraPos'));
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_cameraUp'));
+        mobiusMngr.setUniformLocations(this.gl, this.uniLocations, this.renderProgram);
 
         this.boundOnMouseDown = this.onMouseDown.bind(this);
         this.boundOnMouseMove = this.onMouseMove.bind(this);
@@ -317,13 +318,15 @@ export class OutsideSphereCanvas extends Canvas2D {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.uniform1i(this.uniLocations[0], this.panoramaTexture);
-        this.gl.uniform2f(this.uniLocations[1], this.canvas.width, this.canvas.height);
-        this.gl.uniform1fv(this.uniLocations[2], this.mobiusMngr.sl2cMatrixArray);
-        this.gl.uniform3f(this.uniLocations[3],
+        let uniI = 0;
+        this.gl.uniform1i(this.uniLocations[uniI++], this.panoramaTexture);
+        this.gl.uniform2f(this.uniLocations[uniI++], this.canvas.width, this.canvas.height);
+        this.gl.uniform1fv(this.uniLocations[uniI++], this.mobiusMngr.sl2cMatrixArray);
+        this.gl.uniform3f(this.uniLocations[uniI++],
                           this.cameraPos[0], this.cameraPos[1], this.cameraPos[2]);
-        this.gl.uniform3f(this.uniLocations[4],
+        this.gl.uniform3f(this.uniLocations[uniI++],
                           this.cameraUp[0], this.cameraUp[1], this.cameraUp[2]);
+        uniI = this.mobiusMngr.setUniformValues(this.gl, this.uniLocations, uniI);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,

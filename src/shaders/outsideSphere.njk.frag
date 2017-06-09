@@ -8,6 +8,21 @@ uniform vec2 u_resolution;
 uniform vec3 u_cameraPos;
 uniform vec3 u_cameraUp;
 
+// [lng, lat, zoomReal, zoomImag]
+{% for n in range(0, numMobiusZoomIn) %}
+uniform vec4 u_mobiusZoomIn{{ n }};
+{% endfor %}
+
+// [lng, lat]
+{% for n in range(0, numMobiusRotateAroundAxis) %}
+uniform vec2 u_mobiusRotateAroundAxis{{ n }};
+{% endfor %}
+
+// [p, q, r1, r2]
+{% for n in range(0, numMobiusTranslateAlongAxis) %}
+uniform vec2 u_mobiusTranslateAlongAxis{{ n }}[4];
+{% endfor %}
+
 const float PI = 3.14159265359;
 const float TWO_PI = 2. * PI;
 const float PI_2 = PI * .5;
@@ -49,6 +64,30 @@ vec4 degamma(vec4 rgba) {
                 (min(pow(rgba.g, GAMMA), 1.)),
                 (min(pow(rgba.b, GAMMA), 1.)),
                 rgba.a);
+}
+
+mat3 computeRotateX(float theta) {
+    float cosTheta = cos(theta);
+    float sinTheta = sin(theta);
+    return mat3(1, 0, 0,
+                0, cosTheta, -sinTheta,
+                0, sinTheta, cosTheta);
+}
+
+mat3 computeRotateY(float theta) {
+    float cosTheta = cos(theta);
+    float sinTheta = sin(theta);
+    return mat3(cosTheta, 0, sinTheta,
+                0, 1, 0,
+                -sinTheta, 0, cosTheta);
+}
+
+mat3 computeRotateZ(float theta) {
+    float cosTheta = cos(theta);
+    float sinTheta = sin(theta);
+    return mat3(cosTheta, -sinTheta, 0,
+                sinTheta, cosTheta, 0,
+                0, 0, 1);
 }
 
 bool intersectSphere(vec4 sphere,
@@ -149,6 +188,11 @@ vec3 sphericalView(vec3 dir){
     vec2 lnglat = equirectangularCoord(dir);
     vec4 z = CP1FromSphere(coordOnSphere(lnglat.x, lnglat.y));
     lnglat = equirectangularCoord(sphereFromCP1(applyMobiusArray(u_mobiusArray, z)));
+    {% for n in range(0, numMobiusRotateAroundAxis) %}
+    if (distance(u_mobiusRotateAroundAxis{{ n }}, lnglat) < 0.1) {
+        return vec3(1, 1, 0);
+    }
+    {% endfor %}
     vec4 texCol = texture(u_texture, vec2(-1, 1)* (vec2(0, 1)-lnglat/vec2(TWO_PI, PI)));
     return degamma(texCol).rgb;
 }
@@ -165,8 +209,10 @@ float distPlane(vec3 p, vec4 n) {
     return dot(p, n.xyz) + n.w;
 }
 
-float distCylinder(vec3 p, vec3 c) {
-    return length(p.xz - c.xy) - c.z;
+float distCylinder(vec3 p, vec2 h) {
+    vec2 d = abs(vec2(length(p.xz),p.y)) - h;
+    return min(max(d.x,d.y),0.0) + length(max(d,0.0));
+  //    return length(p.xz - c.xy) - c.z;
 }
 
 const vec4 SPHERE = vec4(0, 0, 0, 1);
@@ -176,9 +222,20 @@ const vec4 PLANE = vec4(0, 1, 0, 1);
 
 const int OBJ_SPHERE = 0;
 const int OBJ_PLANE = 1;
+const int OBJ_CYLINDER = 2;
 vec2 distFunc(vec3 p) {
-    return opUnion(vec2(distSphere(p, SPHERE), OBJ_SPHERE),
-                   vec2(distPlane(p, PLANE), OBJ_PLANE));
+    vec2 d = opUnion(vec2(distSphere(p, SPHERE), OBJ_SPHERE),
+                     vec2(distPlane(p, PLANE), OBJ_PLANE));
+    mat3 m = mat3(1, 0, 0,
+                  0, 1, 0,
+                  0, 0, 1);
+    {% for n in range(0, numMobiusRotateAroundAxis) %}
+    m *= computeRotateZ(abs(u_mobiusRotateAroundAxis{{ n }}.y));
+    m *= computeRotateY(-(u_mobiusRotateAroundAxis{{ n }}.x));
+    {% endfor %}
+        
+    d = opUnion(d, vec2(distCylinder(m * p, vec2(0.05, 1.5)), OBJ_CYLINDER));
+    return d;
 }
 
 const vec2 NORMAL_COEFF = vec2(0.01, 0.);
@@ -239,6 +296,8 @@ vec3 calcColor(vec3 rayOrg, vec3 rayDir) {
         if(hitObj == OBJ_SPHERE){
             matColor = sphericalView(normalize(intersection - SPHERE.xyz));
         } else if (hitObj == OBJ_PLANE) {
+            matColor = vec3(1);
+        } else if (hitObj == OBJ_CYLINDER) {
             matColor = vec3(1);
         }
 
