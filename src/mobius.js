@@ -335,13 +335,56 @@ export class MobiusTranslateAlongAxis extends Mobius {
                  r1Lng, r1Lat, r2Lng, r2Lat) {
         super();
 
-        this.r2Lng = r2Lng;
-        this.r2Lat = r2Lat;
-        this.p = CoordOnSphere(pLng, pLat);
-        this.q = CoordOnSphere(qLng, qLat);
-        this.r1 = CoordOnSphere(r1Lng, r1Lat);
-        this.r2 = CoordOnSphere(r2Lng, r2Lat);
+        this.pLngLat = new Complex(pLng, pLat);
+        this.qLngLat = new Complex(qLng, qLat);
+        this.r1LngLat = new Complex(r1Lng, r1Lat);
+        this.r2LngLat = new Complex(r2Lng, r2Lat);
         this.translationY = 0;
+        this.update();
+    }
+
+    select (lnglat) {
+        const dp = lnglat.sub(this.pLngLat);
+        const dq = lnglat.sub(this.qLngLat);
+        const dr1 = lnglat.sub(this.r1LngLat);
+        const dr2 = lnglat.sub(this.r2LngLat);
+        if (dp.length() < 0.1) {
+            return new SelectionState().setObj(this)
+                .setComponentId(this.POINT_P).setDiffObj(dp);
+        } else if (dq.length() < 0.1) {
+            return new SelectionState().setObj(this)
+                .setComponentId(this.POINT_Q).setDiffObj(dq);
+        } else if (dr1.length() < 0.1) {
+            return new SelectionState().setObj(this)
+                .setComponentId(this.POINT_R1).setDiffObj(dr1);
+        } else if (dr2.length() < 0.1) {
+            return new SelectionState().setObj(this)
+                .setComponentId(this.POINT_R2).setDiffObj(dr2);
+        }
+
+        return new SelectionState();
+    }
+
+    move (selectionState, lnglat) {
+        const nlnglat = lnglat.sub(selectionState.diffObj);
+        switch (selectionState.componentId) {
+        case this.POINT_P: {
+            this.pLngLat = nlnglat;
+            break;
+        }
+        case this.POINT_Q: {
+            this.qLngLat = nlnglat;
+            break;
+        }
+        case this.POINT_R1: {
+            this.r1LngLat = nlnglat;
+            break;
+        }
+        case this.POINT_R2: {
+            this.r2LngLat = nlnglat;
+            break;
+        }
+        }
         this.update();
     }
 
@@ -353,18 +396,40 @@ export class MobiusTranslateAlongAxis extends Mobius {
     setUniformValues(gl, uniLocation, uniIndex) {
         let uniI = uniIndex;
         gl.uniform2fv(uniLocation[uniI++],
-                      [this.pLng, this.pLat, this.qLng, this.qLat,
-                       this.r1Lng, this.r1Lat, this.r2Lng, this.r2Lat]);
+                      [this.pLngLat.re, this.pLngLat.im,
+                       this.qLngLat.re, this.qLngLat.im,
+                       this.r1LngLat.re, this.r1LngLat.im,
+                       this.r2LngLat.re, this.r2LngLat.im]);
         return uniI;
     }
 
     update () {
-        this.r2 = CoordOnSphere(this.r2Lng, this.r2Lat + this.translationY);
+        this.p = CoordOnSphere(this.pLngLat.re, this.pLngLat.im);
+        this.q = CoordOnSphere(this.qLngLat.re, this.qLngLat.im);
+        this.r1 = CoordOnSphere(this.r1LngLat.re, this.r1LngLat.im);
+        this.r2 = CoordOnSphere(this.r2LngLat.re, this.r2LngLat.im);
+//        this.r2 = CoordOnSphere(this.r2LngLat.re, this.r2LngLat.im + this.translationY);
         this.sl2c = Mobius.translateAlongAxis(this.p, this.q, this.r1, this.r2);
     }
 
     getClassName () {
         return 'MobiusTranslateAlongAxis';
+    }
+
+    get POINT_P () {
+        return 0;
+    }
+
+    get POINT_Q () {
+        return 1;
+    }
+
+    get POINT_R1 () {
+        return 2;
+    }
+
+    get POINT_R2 () {
+        return 3;
     }
 }
 
@@ -377,20 +442,39 @@ class SelectionState {
         this.diffObj = -1;
     }
 
+    /**
+     *
+     * @param {Mobius} obj
+     * @returns {SelectionState}
+     */
     setObj (obj) {
         this.selectedObj = obj;
         return this;
     }
 
     /**
+     *
+     * @param {number} componentId
+     * @returns {SelectionState}
+     */
+    setComponentId (componentId) {
+        this.componentId = componentId;
+        return this;
+    }
+
+    /**
      * @param {Complex} diffObj
-     * @returns {Mobius}
+     * @returns {SelectionState}
      */
     setDiffObj (diffObj) {
         this.diffObj = diffObj;
         return this;
     }
 
+    /**
+     *
+     * @returns {boolean}
+     */
     isSelectingObj () {
         return this.selectedObj !== undefined;
     }
