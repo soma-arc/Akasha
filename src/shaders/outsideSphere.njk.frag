@@ -24,8 +24,8 @@ uniform vec2 u_mobiusTranslateAlongAxis{{ n }}[4];
 {% endfor %}
 
 {% include "./constants.njk.frag" %}
-
 {% include "./geometry.njk.frag" %}
+{% include "./gamma.njk.frag" %}
 
 // from Syntopia http://blog.hvidtfeldts.net/index.php/2015/01/path-tracing-3d-fractals/
 vec2 rand2n(vec2 co, float sampleIndex) {
@@ -45,22 +45,6 @@ vec3 calcRay (const vec3 eye, const vec3 target, const vec3 up, const float fov,
     vec3 center = v * imagePlane;
     vec3 origin = center - (xaxis * (resolution.x  *.5)) - (yaxis * (resolution.y * .5));
     return normalize(origin + (xaxis * coord.x) + (yaxis * (resolution.y - coord.y)));
-}
-
-const float GAMMA = 2.2;
-const float DISPLAY_GAMMA_COEFF = 1. / GAMMA;
-vec4 gammaCorrect(vec4 rgba) {
-    return vec4((min(pow(rgba.r, DISPLAY_GAMMA_COEFF), 1.)),
-                (min(pow(rgba.g, DISPLAY_GAMMA_COEFF), 1.)),
-                (min(pow(rgba.b, DISPLAY_GAMMA_COEFF), 1.)),
-                rgba.a);
-}
-
-vec4 degamma(vec4 rgba) {
-    return vec4((min(pow(rgba.r, GAMMA), 1.)),
-                (min(pow(rgba.g, GAMMA), 1.)),
-                (min(pow(rgba.b, GAMMA), 1.)),
-                rgba.a);
 }
 
 mat3 computeRotateX(float theta) {

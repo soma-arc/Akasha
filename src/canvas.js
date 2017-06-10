@@ -1,9 +1,9 @@
 import { getWebGL2Context, createRGBTextures, createSquareVbo,
          attachShader, linkProgram } from './glUtils';
 import { DegToRad, TWO_PI, PI } from './radians.js';
-import { RENDER_VERTEX, RENDER_FRAGMENT, EQ_RECTANGULAR_FRAGMENT,
-         INSIDE_SPHERE_FRAGMENT, OUTSIDE_SPHERE_FRAGMENT,
-         EQ_RECTANGULAR_TMPL, OUTSIDE_SPHERE_TMPL } from './shaders/shaders.js';
+import { RENDER_VERTEX, RENDER_FRAGMENT,
+         EQ_RECTANGULAR_TMPL, OUTSIDE_SPHERE_TMPL,
+         INSIDE_SPHERE_TMPL } from './shaders/shaders.js';
 import Complex from './complex.js';
 
 export class Canvas2D {
@@ -149,7 +149,7 @@ export class EquirectangularCanvas extends Canvas2D {
 
 export class InsideSphereCanvas extends Canvas2D {
     constructor(canvasId, mobiusMngr) {
-        super(canvasId, INSIDE_SPHERE_FRAGMENT);
+        super(canvasId, INSIDE_SPHERE_TMPL.render(mobiusMngr.getSceneContext()));
 
         this.mobiusMngr = mobiusMngr;
 

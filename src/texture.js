@@ -70,10 +70,10 @@ export class ThetaStream {
         const failureCallback = (err) => {
             failure();
             if (err.name === 'PermissionDeniedError') {
-                alert('denied permission');
+                cosole.log('denied permission');
             } else {
                 console.log(err);
-                alert('can not be used webcam');
+                console.log('can not be used webcam');
             }
         }
 
@@ -81,7 +81,7 @@ export class ThetaStream {
             navigator.mediaDevices.getUserMedia(media).then(successCallback,
                                                             failureCallback);
         } else {
-            alert('not supported getUserMedia');
+            console.log('not supported getUserMedia');
         }
     }
 
