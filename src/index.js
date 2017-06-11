@@ -31,11 +31,15 @@ window.addEventListener('load', () => {
 
     const zoom = new MobiusZoomIn(PI, PI_2, 1, 0);
     mobius.addTransformation(zoom);
-    const zoomController = gui.add(zoom, 'zoomReal', 0.5, 5).step(0.01);
-    zoomController.onChange(() => {
+    const zoomRealController = gui.add(zoom, 'zoomReal', -5, 5).step(0.01);
+    const zoomImagController = gui.add(zoom, 'zoomImag', -5, 5).step(0.01);
+    function zoomOnChange () {
         zoom.update();
         mobius.update();
-    });
+    }
+
+    zoomRealController.onChange(zoomOnChange);
+    zoomImagController.onChange(zoomOnChange);
 
     const thetaS = new ThetaStream(true);
     const renderTexCanvas = new RenderTextureCanvas('renderTextureCanvas');

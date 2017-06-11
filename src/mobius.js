@@ -272,14 +272,57 @@ export class MobiusZoomIn extends Mobius {
     getClassName () {
         return 'MobiusZoomIn';
     }
+
+    select (lnglat) {
+        const d = new Complex(this.lng, this.lat);
+        const dp = lnglat.sub(d);
+        const dzf = lnglat.sub(d.add(new Complex(this.zoomReal, this.zoomImag)));
+        if (dp.length() < 0.1) {
+            return new SelectionState().setObj(this)
+                .setComponentId(this.POINT_ZOOM).setDiffObj(dp);
+        } else if (dzf.length() < 0.1) {
+            return new SelectionState().setObj(this)
+                .setComponentId(this.POINT_ZOOM_FACTOR).setDiffObj(dzf);
+        }
+
+        return new SelectionState();
+    }
+
+    /**
+     *
+     * @param {SelectionState} selectionState
+     * @param {Complex} lnglat
+     */
+    move (selectionState, lnglat) {
+        const nlnglat = lnglat.sub(selectionState.diffObj);
+        switch (selectionState.componentId) {
+        case this.POINT_ZOOM: {
+            this.lng = nlnglat.re;
+            this.lat = nlnglat.im;
+            break;
+        }
+        case this.POINT_ZOOM_FACTOR: {
+            const nFact = nlnglat.sub(new Complex(this.lng, this.lat));
+            this.zoomReal = nFact.re;
+            this.zoomImag = nFact.im;
+            break;
+        }
+        }
+        this.update();
+    }
+
+    get POINT_ZOOM () {
+        return 0;
+    }
+
+    get POINT_ZOOM_FACTOR () {
+        return 1;
+    }
 }
 
 export class MobiusRotateAroundAxis extends Mobius {
     constructor (lng, lat, theta) {
         super();
-        assert.ok(typeof lng === 'number');
-        assert.ok(typeof lat === 'number');
-        assert.ok(typeof theta === 'number');
 
         this.lng = lng;
         this.lat = lat;

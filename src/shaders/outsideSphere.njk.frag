@@ -110,13 +110,18 @@ bool intersectPlane(vec3 p, vec3 n, vec3 rayOrigin, vec3 rayDir,
 
 vec3 sphericalView(vec3 dir){
     vec2 lnglat = equirectangularCoord(dir);
-    vec4 z = CP1FromSphere(coordOnSphere(lnglat.x, lnglat.y));
-    lnglat = equirectangularCoord(sphereFromCP1(applyMobiusArray(u_mobiusArray, z)));
     {% for n in range(0, numMobiusRotateAroundAxis) %}
     if (distance(u_mobiusRotateAroundAxis{{ n }}, lnglat) < 0.1) {
-        return vec3(1, 1, 0);
+        return YELLOW;
     }
     {% endfor %}
+    {% for n in range(0, numMobiusZoomIn) %}
+    if (distance(lnglat, u_mobiusZoomIn{{ n }}.xy) < 0.1) {
+        return PINK;
+    }
+    {% endfor %}
+    vec4 z = CP1FromSphere(coordOnSphere(lnglat.x, lnglat.y));
+    lnglat = equirectangularCoord(sphereFromCP1(applyMobiusArray(u_mobiusArray, z)));
     vec4 texCol = texture(u_texture, vec2(-1, 1)* (vec2(0, 1)-lnglat/vec2(TWO_PI, PI)));
     return degamma(texCol).rgb;
 }
