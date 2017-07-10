@@ -4,11 +4,25 @@
         <title>Akasha</title>
         <meta charset="UTF-8" />
         <script type="text/javascript" src="./bundle.js"></script>
+        <style>
+         *,
+         *::before,
+         *::after {
+             box-sizing: border-box;
+         }
+         html {
+             font-size: 100%;
+         }
+         body {
+             margin: 0;
+             height: 100%
+         }
+        </style>
     </head>
-    <body id="bodyElem">
-        <canvas id="renderTextureCanvas" width="1280px", height="720px"></canvas><br>
-        <canvas id="equirectangularCanvas" width="1000px", height="500px"></canvas><br>
-        <canvas id="outsideSphereCanvas" width="800px", height="800px"></canvas>
-        <canvas id="insideSphereCanvas" width="800px", height="800px"></canvas>
+    <body id="app">
+        <!-- <canvas id="renderTextureCanvas" width="640px", height="320px"></canvas><br>
+             <canvas id="equirectCanvas" width="640px", height="320px"></canvas><br>
+             <canvas id="sphereOuterCanvas" width="320px", height="320px"></canvas>
+             <canvas id="sphereInnerCanvas" width="320px", height="320px"></canvas> -->
     </body>
 </html>

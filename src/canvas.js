@@ -10,7 +10,7 @@ export class Canvas2D {
     constructor(canvasId, fragment) {
         this.canvas = document.getElementById(canvasId);
         this.gl = getWebGL2Context(this.canvas);
-
+        this.resizeCanvas();
         this.vertexBuffer = createSquareVbo(this.gl);
         this.canvasRatio = this.canvas.width / this.canvas.height / 2;
         this.pixelRatio = window.devicePixelRatio;
@@ -66,6 +66,13 @@ export class Canvas2D {
                                     this.gl.FLOAT, false, 0, 0);
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
         this.gl.flush();
+    }
+
+    resizeCanvas() {
+        const parent = this.canvas.parentElement;
+        this.canvas.width = parent.clientWidth * this.pixelRatio;
+        this.canvas.height = parent.clientHeight * this.pixelRatio;
+        this.canvasRatio = this.canvas.width / this.canvas.height / 2;
     }
 }
 
