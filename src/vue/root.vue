@@ -4,6 +4,10 @@
     </header>
     <main-panel/>
     <footer class="footer">
+      <a id="ghLink" href="https://github.com/soma-arc/Akasha"
+         target="_blank">
+        <img src="../img/GitHub-Mark-32px.png" class="imgLink"/>
+      </a>
     </footer>
   </div>
 </template>
