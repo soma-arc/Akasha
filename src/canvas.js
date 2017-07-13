@@ -52,7 +52,8 @@ export class Canvas2D {
 
     getMousePosOnCanvas(event) {
         const rect = this.canvas.getBoundingClientRect();
-        return [event.clientX - rect.left, event.clientY - rect.top];
+        return [(event.clientX - rect.left) * this.pixelRatio,
+                (event.clientY - rect.top) * this.pixelRatio];
     }
 
     render() {
@@ -70,6 +71,8 @@ export class Canvas2D {
 
     resizeCanvas() {
         const parent = this.canvas.parentElement;
+        this.canvas.style.width = parent.clientWidth + 'px';
+        this.canvas.style.height = parent.clientHeight + 'px';
         this.canvas.width = parent.clientWidth * this.pixelRatio;
         this.canvas.height = parent.clientHeight * this.pixelRatio;
         this.canvasRatio = this.canvas.width / this.canvas.height / 2;
@@ -114,12 +117,29 @@ export class EquirectangularCanvas extends Canvas2D {
         this.canvas.addEventListener('mouseup', this.boundOnMouseRelease);
     }
 
+    resizeCanvas() {
+        const parent = this.canvas.parentElement;
+        if (parent.clientWidth > parent.clientHeight) {
+            this.canvas.style.width = parent.clientHeight * 2 + 'px';
+            this.canvas.style.height = parent.clientHeight + 'px';
+            this.canvas.width = parent.clientHeight * 2 * this.pixelRatio;
+            this.canvas.height = parent.clientHeight * this.pixelRatio;
+        } else {
+            this.canvas.style.width = parent.clientWidth + 'px';
+            this.canvas.style.height = parent.clientWidth / 2 + 'px';
+            this.canvas.width = parent.clientWidth * this.pixelRatio;
+            this.canvas.height = parent.clientWidth * this.pixelRatio / 2;
+        }
+
+        this.canvasRatio = this.canvas.width / this.canvas.height / 2;
+    }
+
     onMouseDown(event) {
         event.preventDefault();
         this.isMousePressing = true;
         this.mouseDownXY = this.getMousePosOnCanvas(event);
         this.mobiusMngr.select(new Complex(TWO_PI * this.mouseDownXY[0] / this.canvas.width,
-                                           PI * Math.abs(this.mouseDownXY[1] / this.canvas.height -1)));
+                                           PI * Math.abs(this.mouseDownXY[1] / this.canvas.height - 1)));
     }
 
     onMouseMove(event) {

@@ -40,6 +40,10 @@ export default {
     display: flex;
 }
 
+#equirectCanvas {
+    align-items: center;
+}
+
 #canvasParentPanel {
     flex: 1;
     display: flex;
@@ -81,7 +85,8 @@ export default {
 .canvasParent {
     flex: 1;
     display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
 
 </style>
