@@ -1,3 +1,0 @@
-[submodule "lib/dat.gui"]
-	path = lib/dat.gui
-	url = git@github.com:dataarts/dat.gui
