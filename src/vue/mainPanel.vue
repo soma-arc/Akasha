@@ -19,14 +19,14 @@
         </div>
       </div>
     </div>
-    <control-panel/>
+    <control-panel v-bind:mobiusMngr="mobiusMngr"/>
   </div>
 </template>
 
 <script>
 import ControlPanel from './controlPanel.vue';
 export default {
-    props: [],
+    props: ['mobiusMngr'],
     components: {
         ControlPanel
     }

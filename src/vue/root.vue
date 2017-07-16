@@ -2,7 +2,7 @@
   <div id="body">
     <header class="header">
     </header>
-    <main-panel/>
+    <main-panel v-bind:mobiusMngr="mobiusMngr"/>
     <footer class="footer">
       <a id="ghLink" href="https://github.com/soma-arc/Akasha"
          target="_blank">
@@ -15,7 +15,7 @@
 <script>
 import MainPanel from './mainPanel.vue';
 export default {
-    props: [],
+    props: ['mobiusMngr'],
     components: {
         MainPanel
     }

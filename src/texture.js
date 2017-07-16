@@ -143,7 +143,7 @@ export class TextureHandler {
         this.canvasInitFunctions = canvases.map((c) => {
             return c.boundInitPanoramaTexture;
         });
-        this.video.connect(this.initCanvasTextures,
+        this.video.connect(this.initCanvasTextures.bind(this),
                            () => {
                                this.initCanvasTextures(this.defaultTexture.width,
                                                        this.defaultTexture.height);

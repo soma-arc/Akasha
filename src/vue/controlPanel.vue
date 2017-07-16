@@ -1,9 +1,10 @@
 <template>
   <div class="controlPanel">
     <ui-tabs fullwidth id="tabs">
-      <ui-tab title="Generator" id="tab-1">
-      </ui-tab>
+      <!-- <ui-tab title="Generator" id="tab-1"> -->
+      <!-- </ui-tab> -->
       <ui-tab title="Scene" id="tab-2">
+        <mobius-panel v-bind:mobiusMngr="mobiusMngr" />
       </ui-tab>
     </ui-tabs>
   </div>
@@ -12,12 +13,14 @@
 <script>
 import UiTabs from 'keen-ui/lib/UiTabs';
 import UiTab from 'keen-ui/lib/UiTab';
+import MobiusPanel from './mobiusPanel.vue';
 
 export default {
-    props: [],
+    props: ['mobiusMngr'],
     components: {
         UiTabs,
         UiTab,
+        MobiusPanel
     }
 }
 </script>

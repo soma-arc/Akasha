@@ -10,16 +10,19 @@ uniform float[8] u_mobiusArray;
 // [lng, lat, zoomReal, zoomImag]
 {% for n in range(0, numMobiusZoomIn) %}
 uniform vec4 u_mobiusZoomIn{{ n }};
+uniform bool u_mobiusZoomInVisible{{ n }};
 {% endfor %}
 
 // [lng, lat]
 {% for n in range(0, numMobiusRotateAroundAxis) %}
 uniform vec2 u_mobiusRotateAroundAxis{{ n }};
+uniform bool u_mobiusRotateAroundAxisVisible{{ n }};
 {% endfor %}
 
 // [p, q, r1, r2]
 {% for n in range(0, numMobiusTranslateAlongAxis) %}
 uniform vec2 u_mobiusTranslateAlongAxis{{ n }}[4];
+uniform bool u_mobiusTranslateAlongAxisVisible{{ n }};
 {% endfor %}
 
 // include radians and colors
@@ -35,43 +38,49 @@ void main() {
     vec2 lnglat = vec2(TWO_PI, PI) * uv;
 
     {% for n in range(0, numMobiusRotateAroundAxis) %}
-    if (distance(lnglat, u_mobiusRotateAroundAxis{{ n }}) < 0.1) {
-        outColor = vec4(YELLOW, 1);
-        return;
+    if(u_mobiusRotateAroundAxisVisible{{ n }}) {
+        if (distance(lnglat, u_mobiusRotateAroundAxis{{ n }}) < 0.1) {
+            outColor = vec4(YELLOW, 1);
+            return;
+        }
     }
     {% endfor %}
 
     // [lng, lat, zoomReal, zoomImag]
     {% for n in range(0, numMobiusZoomIn) %}
-    if (distance(lnglat, u_mobiusZoomIn{{ n }}.xy) < 0.1) {
-        outColor = vec4(PINK, 1);
-        return;
-    }
-    if (distance(lnglat, u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1 ||
-        distance(lnglat + vec2(TWO_PI, 0), u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1 ||
-        distance(lnglat + vec2(0, PI), u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1) {
-        outColor = vec4(PINK, 1);
-        return;
+    if(u_mobiusZoomInVisible{{ n }}) {
+        if (distance(lnglat, u_mobiusZoomIn{{ n }}.xy) < 0.1) {
+            outColor = vec4(PINK, 1);
+            return;
+        }
+        if (distance(lnglat, u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1 ||
+            distance(lnglat + vec2(TWO_PI, 0), u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1 ||
+            distance(lnglat + vec2(0, PI), u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1) {
+            outColor = vec4(PINK, 1);
+            return;
+        }
     }
     {% endfor %}
 
     // [p, q, r1, r2]
     {% for n in range(0, numMobiusTranslateAlongAxis) %}
-    if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[0]) < 0.1) {
-        outColor = vec4(RED, 1);
-        return;
-    }
-    if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[1]) < 0.1) {
-        outColor = vec4(RED, 1);
-        return;
-    }
-    if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[2]) < 0.1) {
-        outColor = vec4(GREEN, 1);
-        return;
-    }
-    if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[3]) < 0.1) {
-        outColor = vec4(GREEN, 1);
-        return;
+    if(u_mobiusTranslateAlongAxisVisible{{ n }}) {
+        if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[0]) < 0.1) {
+            outColor = vec4(RED, 1);
+            return;
+        }
+        if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[1]) < 0.1) {
+            outColor = vec4(RED, 1);
+            return;
+        }
+        if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[2]) < 0.1) {
+            outColor = vec4(GREEN, 1);
+            return;
+        }
+        if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[3]) < 0.1) {
+            outColor = vec4(GREEN, 1);
+            return;
+        }
     }
     {% endfor %}
 

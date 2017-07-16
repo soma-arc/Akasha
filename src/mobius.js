@@ -249,17 +249,22 @@ export class MobiusZoomIn extends Mobius {
         this.update();
 
         this.uniformObjIndex = 0;
+        this.selected = false;
     }
 
     setUniformLocation(gl, uniLocations, program, index) {
         uniLocations.push(gl.getUniformLocation(program,
                                                 `u_mobiusZoomIn${index}`));
+        uniLocations.push(gl.getUniformLocation(program,
+                                                `u_mobiusZoomInVisible${index}`));
     }
 
     setUniformValues(gl, uniLocation, uniIndex) {
         let uniI = uniIndex;
         gl.uniform4f(uniLocation[uniI++],
                      this.lng, this.lat, this.zoomReal, this.zoomImag);
+        gl.uniform1i(uniLocation[uniI++],
+                     this.selected);
         return uniI;
     }
 
@@ -330,20 +335,30 @@ export class MobiusRotateAroundAxis extends Mobius {
 
         this.update();
         this.uniformObjIndex = 0;
+        this.selected = false;
     }
 
     setUniformLocation(gl, uniLocations, program, index) {
         uniLocations.push(gl.getUniformLocation(program,
                                                 `u_mobiusRotateAroundAxis${index}`));
+        uniLocations.push(gl.getUniformLocation(program,
+                                                `u_mobiusRotateAroundAxisVisible${index}`));
     }
 
     setUniformValues(gl, uniLocation, uniIndex) {
         let uniI = uniIndex;
         gl.uniform2f(uniLocation[uniI++], this.lng, this.lat);
+        gl.uniform1i(uniLocation[uniI++], this.selected);
         return uniI;
     }
 
     update () {
+        this.p = CoordOnSphere(this.lng, this.lat);
+        this.sl2c = Mobius.rotateAroundAxis(this.p, this.theta);
+    }
+
+    // avoid name conflict for vue
+    update2 () {
         this.p = CoordOnSphere(this.lng, this.lat);
         this.sl2c = Mobius.rotateAroundAxis(this.p, this.theta);
     }
@@ -384,6 +399,8 @@ export class MobiusTranslateAlongAxis extends Mobius {
         this.r2LngLat = new Complex(r2Lng, r2Lat);
         this.translationY = 0;
         this.update();
+
+        this.selected = false;
     }
 
     select (lnglat) {
@@ -434,6 +451,8 @@ export class MobiusTranslateAlongAxis extends Mobius {
     setUniformLocation(gl, uniLocations, program, index) {
         uniLocations.push(gl.getUniformLocation(program,
                                                 `u_mobiusTranslateAlongAxis${index}`));
+        uniLocations.push(gl.getUniformLocation(program,
+                                                `u_mobiusTranslateAlongAxisVisible${index}`));
     }
 
     setUniformValues(gl, uniLocation, uniIndex) {
@@ -443,6 +462,8 @@ export class MobiusTranslateAlongAxis extends Mobius {
                        this.qLngLat.re, this.qLngLat.im,
                        this.r1LngLat.re, this.r1LngLat.im,
                        this.r2LngLat.re, this.r2LngLat.im]);
+        gl.uniform1i(uniLocation[uniI++],
+                     this.selected);
         return uniI;
     }
 
@@ -528,6 +549,13 @@ export class MobiusManager {
         this.sl2cMatrix = SL2C.UNIT;
         this.transformations = [];
         this.selectionState = new SelectionState();
+        this.selectedTransformation = undefined;
+    }
+
+    unselectAll() {
+        for (const mobius of this.transformations) {
+            mobius.selected = false;
+        }
     }
 
     /**
@@ -537,6 +565,7 @@ export class MobiusManager {
      */
     select (lnglat) {
         for (const mobius of this.transformations) {
+            if (mobius.selected === false) continue;
             const state = mobius.select(lnglat);
             if (state.isSelectingObj()) {
                 this.selectionState = state;
@@ -567,6 +596,20 @@ export class MobiusManager {
     }
 
     update () {
+        if (this.transformations.length === 0) {
+            this.sl2cMatrix = SL2C.UNIT;
+        } else if (this.transformations.length === 1) {
+            this.sl2cMatrix = this.transformations[0].sl2c;
+        } else {
+            this.sl2cMatrix = this.transformations.map((t) => {
+                return t.sl2c;
+            }).reduce((prev, curr) => {
+                return prev.mult(curr);
+            });
+        }
+    }
+
+    update2 () {
         if (this.transformations.length === 0) {
             this.sl2cMatrix = SL2C.UNIT;
         } else if (this.transformations.length === 1) {

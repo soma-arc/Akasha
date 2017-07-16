@@ -11,16 +11,19 @@ uniform vec3 u_cameraUp;
 // [lng, lat, zoomReal, zoomImag]
 {% for n in range(0, numMobiusZoomIn) %}
 uniform vec4 u_mobiusZoomIn{{ n }};
+uniform bool u_mobiusZoomInVisible{{ n }};
 {% endfor %}
 
 // [lng, lat]
 {% for n in range(0, numMobiusRotateAroundAxis) %}
 uniform vec2 u_mobiusRotateAroundAxis{{ n }};
+uniform bool u_mobiusRotateAroundAxisVisible{{ n }};
 {% endfor %}
 
 // [p, q, r1, r2]
 {% for n in range(0, numMobiusTranslateAlongAxis) %}
 uniform vec2 u_mobiusTranslateAlongAxis{{ n }}[4];
+uniform bool u_mobiusTranslateAlongAxisVisible{{ n }};
 {% endfor %}
 
 {% include "./constants.njk.frag" %}
@@ -111,15 +114,41 @@ bool intersectPlane(vec3 p, vec3 n, vec3 rayOrigin, vec3 rayDir,
 vec3 sphericalView(vec3 dir){
     vec2 lnglat = equirectangularCoord(dir);
     {% for n in range(0, numMobiusRotateAroundAxis) %}
-    if (distance(u_mobiusRotateAroundAxis{{ n }}, lnglat) < 0.1) {
+    if (u_mobiusRotateAroundAxisVisible{{ n }} &&
+        distance(u_mobiusRotateAroundAxis{{ n }}, lnglat) < 0.1) {
         return YELLOW;
     }
     {% endfor %}
     {% for n in range(0, numMobiusZoomIn) %}
-    if (distance(lnglat, u_mobiusZoomIn{{ n }}.xy) < 0.1) {
+    if (u_mobiusZoomInVisible{{ n }} &&
+        distance(lnglat, u_mobiusZoomIn{{ n }}.xy) < 0.1) {
+        return PINK;
+    }
+    if (u_mobiusZoomInVisible{{ n }} &&
+        (distance(lnglat, u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1 ||
+        distance(lnglat + vec2(TWO_PI, 0), u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1 ||
+         distance(lnglat + vec2(0, PI), u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1)) {
         return PINK;
     }
     {% endfor %}
+
+    {% for n in range(0, numMobiusTranslateAlongAxis) %}
+    if(u_mobiusTranslateAlongAxisVisible{{ n }}) {
+        if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[0]) < 0.1) {
+            return RED;
+        }
+        if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[1]) < 0.1) {
+            return RED;
+        }
+        if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[2]) < 0.1) {
+            return GREEN;
+        }
+        if (distance(lnglat, u_mobiusTranslateAlongAxis{{ n }}[3]) < 0.1) {
+            return GREEN;
+        }
+    }
+    {% endfor %}
+    
     vec4 z = CP1FromSphere(coordOnSphere(lnglat.x, lnglat.y));
     lnglat = equirectangularCoord(sphereFromCP1(applyMobiusArray(u_mobiusArray, z)));
     vec4 texCol = texture(u_texture, vec2(-1, 1)* (vec2(0, 1)-lnglat/vec2(TWO_PI, PI)));
@@ -161,9 +190,10 @@ vec2 distFunc(vec3 p) {
     {% for n in range(0, numMobiusRotateAroundAxis) %}
     m *= computeRotateZ(abs(u_mobiusRotateAroundAxis{{ n }}.y));
     m *= computeRotateY(-(u_mobiusRotateAroundAxis{{ n }}.x));
+    if(u_mobiusRotateAroundAxisVisible{{ n }}) {
+        d = opUnion(d, vec2(distCylinder(m * p, vec2(0.05, 1.5)), OBJ_CYLINDER));
+    }
     {% endfor %}
-
-    d = opUnion(d, vec2(distCylinder(m * p, vec2(0.05, 1.5)), OBJ_CYLINDER));
     return d;
 }
 
