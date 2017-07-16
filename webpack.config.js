@@ -32,7 +32,7 @@ module.exports = () => ({
             },
             {
                 test: /\.js$/,
-                exclude: /node_modules/,
+                exclude: /node_modules(?!(\/|\\)keen-ui)/,
                 loader: 'babel-loader',
             },
             {
@@ -57,6 +57,6 @@ module.exports = () => ({
     plugins: [
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production'),
-        }),
+        })
     ],
 });
