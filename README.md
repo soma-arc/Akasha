@@ -11,5 +11,9 @@ npm run release
 
 ## Usage
 
-Open dist/index.html.
-This system is tested on Google Chrome
+``` shell
+npm run start
+```
+or access to the URL [https://soma-arc.net/Akasha/](https://soma-arc.net/Akasha/)
+
+This system is tested on Google Chrome.
