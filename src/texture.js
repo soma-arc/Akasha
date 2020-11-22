@@ -1,3 +1,4 @@
+
 import { getWebGL2Context, createSquareVbo, attachShader,
          linkProgram, createRGBTextures } from './glUtils.js';
 import { RENDER_VERTEX, STITCH_FRAGMENT } from './shaders/shaders.js';
@@ -49,7 +50,8 @@ export class ThetaStream {
         const media = { video: true, audio: false };
 
         const successCallback = (localMediaStream) => {
-            this.video.src = window.URL.createObjectURL(localMediaStream);
+            this.video = document.createElement('video');
+            this.video.srcObject = localMediaStream;
             const canplayListener = () => {
                 this.video.removeEventListener('canplay', canplayListener);
                 this.streaming = true;
