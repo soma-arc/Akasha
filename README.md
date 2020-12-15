@@ -10,7 +10,7 @@ npm run release
 ```
 
 ## Usage
-
+Connect theta S in live mode
 ``` shell
 npm run start
 ```
