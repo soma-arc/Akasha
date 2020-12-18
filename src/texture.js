@@ -71,8 +71,9 @@ export class ThetaStream {
 
         const failureCallback = (err) => {
             failure();
+            console.log('failure');
             if (err.name === 'PermissionDeniedError') {
-                cosole.log('denied permission');
+                console.log('denied permission');
             } else {
                 console.log(err);
                 console.log('can not be used webcam');
