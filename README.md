@@ -1,4 +1,6 @@
 # Akasha
+![./img/Akasha.png](./img/Akasha.png)
+
 Spherical photo editor / viewer
 
 ## Build

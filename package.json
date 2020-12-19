@@ -22,7 +22,7 @@
     "babel-plugin-jsdoc-to-assert": "^4.0.0",
     "babel-plugin-unassert": "^3.0.1",
     "babel-preset-power-assert": "^3.0.0",
-    "buefy": "^0.8.20",
+    "buefy": "^0.9.4",
     "cross-env": "^7.0.2",
     "css-loader": "^4.3.0",
     "eslint": "^3.18.0",
