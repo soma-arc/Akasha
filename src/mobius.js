@@ -593,6 +593,7 @@ export class MobiusManager {
     addTransformation (transformation) {
         assert.ok(transformation instanceof Mobius);
         this.transformations.push(transformation);
+        this.update();
     }
 
     update () {
