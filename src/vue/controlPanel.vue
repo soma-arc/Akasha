@@ -1,25 +1,19 @@
 <template>
   <div class="controlPanel">
-    <ui-tabs fullwidth id="tabs">
-      <!-- <ui-tab title="Generator" id="tab-1"> -->
-      <!-- </ui-tab> -->
-      <ui-tab title="Scene" id="tab-2">
+    <b-tabs v-model="activeTab">
+      <b-tab-item label="Scene">
         <mobius-panel v-bind:mobiusMngr="mobiusMngr" />
-      </ui-tab>
-    </ui-tabs>
+      </b-tab-item>
+    </b-tabs>  
   </div>
 </template>
 
 <script>
-import UiTabs from 'keen-ui/lib/UiTabs';
-import UiTab from 'keen-ui/lib/UiTab';
 import MobiusPanel from './mobiusPanel.vue';
 
 export default {
     props: ['mobiusMngr'],
     components: {
-        UiTabs,
-        UiTab,
         MobiusPanel
     }
 }
@@ -29,10 +23,15 @@ export default {
 .controlPanel {
     border-style: ridge;
     border-color: gray;
-    background-color: Gainsboro;
+    background-color: white;
     flex-basis: 300px;
     display: flex;
     flex-direction: column;
+    height: 100%;
+  overflow: auto;
+
+
+  padding: 15px;
 }
 
 .objList {
