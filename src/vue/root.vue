@@ -1,15 +1,37 @@
 <template>
-  <div id="body">
-    <header class="header">
-    </header>
-    <main-panel v-bind:mobiusMngr="mobiusMngr"/>
-    <footer class="footer">
+<div id="body">
+  <header class="header">
+    <ul class="headerLeft">
+      <li class="headerContent"><span>Akasha</span></li>
+    </ul>
+    <ul class="headerRight">
+      <li class="buttonLi">
+        <button class="button" @click="">Clear</button>
+      </li>
+      <li class="buttonLi">
+        <button class="button" @click="">Export</button>
+      </li>
+      <li class="buttonLi">
+        <button class="button" @click="">Import</button>
+      </li>
+      <li class="buttonLi">
+        <button class="button" @click="">SaveImage</button>
+      </li>
+    </ul>
+  </header>
+  <main-panel v-bind:mobiusMngr="mobiusMngr"/>
+  <footer>
+    <div id="left">
       <a id="ghLink" href="https://github.com/soma-arc/Akasha"
-         target="_blank">
+       target="_blank">
         <img src="../img/GitHub-Mark-32px.png" class="imgLink"/>
       </a>
-    </footer>
-  </div>
+    </div>
+    <div>
+      Created by soma_arc
+    </div>
+  </footer>
+</div>
 </template>
 
 <script>
@@ -39,6 +61,26 @@ html {
     overflow: hidden;
 }
 
+header {
+    border-style: ridge;
+    border-color: gray;
+
+    overflow:hidden;
+    font-size: 2rem;
+
+    height: 50px;
+    background-color: Azure;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    cursor: default;
+}
+
 .headerLeft {
     margin: 0;
     padding: 0;
@@ -47,6 +89,18 @@ html {
 
     list-style: none;
     height: 100%;
+}
+
+.headerRight{
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+
+    list-style: none;
+    height: 100%;
+
+    flex-direction: row-reverse;
 }
 
 .myBtn {
@@ -80,28 +134,8 @@ a:active {color:#000000;}
     flex: 1;
     display: flex;
 }
-  
-.header {
-    border-style: ridge;
-    border-color: gray;
-    
-    overflow:hidden;
-    font-size: 2rem;
 
-    height: 50px;
-    background-color: Azure;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -o-user-select: none;
-    cursor: default
-}
-
-.footer {
+footer {
     border-style: ridge;
     border-color: gray;
     height: 50px;
@@ -110,7 +144,7 @@ a:active {color:#000000;}
     justify-content: space-between;
     align-items: center;
     padding-right: 0.9rem;
-
+    
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -127,4 +161,23 @@ a:active {color:#000000;}
     height: 50px;
 }
 
+.buttonLi {
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding-right: 10px;
+    display: flex;
+}
+
+.headerContent {
+    padding: 5px;
+}
+
+#left {
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 10px;
+}
 </style>

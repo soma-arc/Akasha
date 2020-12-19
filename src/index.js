@@ -1,4 +1,6 @@
 import Vue from 'vue';
+import Buefy from 'buefy';
+import 'buefy/dist/buefy.css';
 import Root from './vue/root.vue';
 import { RenderTextureCanvas, EquirectangularCanvas,
          InsideSphereCanvas, OutsideSphereCanvas } from './canvas.js';
@@ -6,10 +8,12 @@ import { ThetaStream, TextureHandler } from './texture.js';
 import { MobiusManager, MobiusRotateAroundAxis,
          MobiusTranslateAlongAxis, MobiusZoomIn } from './mobius.js';
 //import dat from '../lib/dat.gui/build/dat.gui.min.js';
-import { PI, TWO_PI, PI_2 } from './radians.js';
-import 'keen-ui/src/bootstrap';
+import { PI, TWO_PI, PI_2, PI_3 } from './radians.js';
 
 window.addEventListener('load', () => {
+    Vue.use(Buefy);
+    window.Vue = Vue;
+
     const mobius = new MobiusManager();
 
     const m = new MobiusRotateAroundAxis(PI_2, PI_2, 0);
