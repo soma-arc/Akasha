@@ -1,24 +1,35 @@
 <template>
-  <div>
-    <!-- <ui-slider id="angleSlider" v-model.number="rotate.theta" -->
-    <!--            type="number" key="h-n" /> -->
-    <ui-textbox v-model.number="rotate.theta" label="rotation"
-                type="number" step="0.1" key="p-x" @change="update"/>
-  </div>
+<div>
+  <!-- <b-field label="Longitude  Latitude"> -->
+  <!--   <b-input v-model.number="rotate.lng" -->
+  <!--            type="number" -->
+  <!--            @input="updateRotation" -->
+  <!--            min="0" max="6.24" -->
+  <!--            step="0.1"></b-input> -->
+  <!--   <b-input v-model.number="rotate.lat" -->
+  <!--            type="number" -->
+  <!--            @input="updateRotation" -->
+  <!--            min="0" max="6.24" -->
+  <!--            step="0.1"></b-input> -->
+  <!-- </b-field> -->
+  <b-field label="Rotation (radians)">
+    <b-input v-model.number="rotate.theta"
+             type="number"
+             v-on:dragging="sliderDragging"
+             v-on:dragend="sliderDragEnd"
+             :min="-6.28" :max="6.28" :step="0.01"
+             @input="updateRotation"></b-input>
+  </b-field>
+</div>
 </template>
 
 <script>
-    import UiSlider from 'keen-ui/lib/UiSlider';
-  import UiTextbox from 'keen-ui/lib/UiTextbox';
-
 export default {
     props: ['mobiusMngr', 'rotate'],
     components: {
-        UiSlider,
-        UiTextbox
     },
     methods: {
-        update: function() {
+        updateRotation: function() {
             this.rotate.update2();
             this.mobiusMngr.update2();
         }

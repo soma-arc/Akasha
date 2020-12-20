@@ -1,29 +1,36 @@
 <template>
-  <div id="sceneObjPanel">
-    <select size="5" @change="updateSelection"
-            v-model="mobiusMngr.selectedTransformation"
-            class="objList">
-      <option v-for="mobius in mobiusMngr.transformations" v-bind:value="mobius" key="obj.id">
+<div>
+  <b-field label="Transformations">
+    <b-select id="transformSelection"
+              native-size="4" @input="updateSelection"
+              v-model="mobiusMngr.selectedTransformation"
+              expanded
+              class="objList">
+      <option v-for="mobius in mobiusMngr.transformations"
+              :value="mobius" key="obj.id">
         {{ mobius.getClassName() }}
       </option>
-    </select>
-    <rotate-control v-if="selectedObjName === 'MobiusRotateAroundAxis'"
-                    v-bind:rotate="mobiusMngr.selectedTransformation",
-                    v-bind:mobiusMngr="mobiusMngr" />
-    <!-- <ui-button id="deleteButton" type="secondary" raised color="primary"
-               @click="deleteSelectedObj">Delete</ui-button>
-      -->
-  </div>
+    </b-select>
+  </b-field>
+  <br><br><br>
+  <b-field>
+    <rotate-control v-show="selectedObjName === 'MobiusRotateAroundAxis'"
+                    :rotate="mobiusMngr.selectedTransformation",
+                    :mobiusMngr="mobiusMngr" />
+  </b-field>
+</div>
 </template>
 
 <script>
-import UiButton from 'keen-ui/lib/UiButton';
 import RotateControl from './rotateControl.vue';
 
 export default {
     props: ['mobiusMngr'],
+    data: function () {
+        return {
+        }
+    },
     components: {
-        UiButton,
         RotateControl
     },
     computed: {
@@ -43,20 +50,8 @@ export default {
 </script>
 
 <style>
-#sceneObjPanel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.objList {
-    padding-left: 0;
-    width: 200px;
-    height: 100px;
-}
-
-#deleteButton {
-    margin: 5px;
+#transformSelection {
+    height:150px;
+    width: 100%;
 }
 </style>
