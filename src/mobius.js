@@ -274,6 +274,10 @@ export class MobiusZoomIn extends Mobius {
         this.sl2c = Mobius.zoomIn(this.p, this.zoomFactor);
     }
 
+    getName() {
+        return 'ZoomIn';
+    }
+
     getClassName () {
         return 'MobiusZoomIn';
     }
@@ -363,6 +367,10 @@ export class MobiusRotateAroundAxis extends Mobius {
         this.sl2c = Mobius.rotateAroundAxis(this.p, this.theta);
     }
 
+    getName() {
+        return 'RotateAroundAxis';
+    }
+    
     getClassName () {
         return 'MobiusRotateAroundAxis';
     }
@@ -476,6 +484,10 @@ export class MobiusTranslateAlongAxis extends Mobius {
         this.sl2c = Mobius.translateAlongAxis(this.p, this.q, this.r1, this.r2);
     }
 
+    getName() {
+        return 'TranslateAlongAxis';
+    }
+    
     getClassName () {
         return 'MobiusTranslateAlongAxis';
     }

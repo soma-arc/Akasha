@@ -8,11 +8,26 @@
               class="objList">
       <option v-for="mobius in mobiusMngr.transformations"
               :value="mobius" key="obj.id">
-        {{ mobius.getClassName() }}
+        {{ mobius.getName() }}
       </option>
     </b-select>
   </b-field>
   <br><br><br>
+  <b-field>
+    <b-button @click="">Delete</b-button>
+  </b-field>
+   <b-field label="Add Transformations">
+    <b-select placeholder="Select a variation"
+              v-model="selectedVariation">
+      <option
+        v-for="option in variations"
+        :value="option"
+        :key="option.id">
+        {{ option.name }}
+      </option>
+    </b-select>
+    <b-button @click="">Add</b-button>
+  </b-field>
   <b-field>
     <rotate-control v-show="selectedObjName === 'MobiusRotateAroundAxis'"
                     :rotate="mobiusMngr.selectedTransformation",
@@ -28,6 +43,10 @@ export default {
     props: ['mobiusMngr'],
     data: function () {
         return {
+            selectedVariation: undefined,
+            variations: [{ id: 0, name: 'Rotation' },
+                         { id: 1, name: 'Translation' },
+                         { id: 2, name: 'Zoom' }]
         }
     },
     components: {
