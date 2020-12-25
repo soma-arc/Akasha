@@ -15,7 +15,7 @@
         <button class="button" @click="">Import</button>
       </li>
       <li class="buttonLi">
-        <button class="button" @click="">SaveImage</button>
+        <button class="button" @click="saveEquirectangular">SaveImage</button>
       </li>
     </ul>
   </header>
@@ -37,9 +37,14 @@
 <script>
 import MainPanel from './mainPanel.vue';
 export default {
-    props: ['mobiusMngr'],
+    props: ['mobiusMngr', 'canvasMngr'],
     components: {
         MainPanel
+    },
+    methods: {
+        saveEquirectangular: function() {
+            this.canvasMngr.saveEquirectangular();
+        }
     }
 }
 

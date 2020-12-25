@@ -1,16 +1,21 @@
 import { getWebGL2Context, createRGBTextures, createSquareVbo,
          attachShader, linkProgram } from './glUtils';
 import { DegToRad, TWO_PI, PI } from './radians.js';
-import { RENDER_VERTEX, RENDER_FRAGMENT,
+import { RENDER_VERTEX, RENDER_VERTEX_FLIPPED, RENDER_FRAGMENT,
          EQ_RECTANGULAR_TMPL, OUTSIDE_SPHERE_TMPL,
          INSIDE_SPHERE_TMPL } from './shaders/shaders.js';
 import Complex from './complex.js';
 
 export class Canvas2D {
     constructor(canvasId, fragment) {
-        this.canvas = document.getElementById(canvasId);
+        this.canvasId = canvasId
         this.fragmant = fragment;
+    }
+
+    init() {
+        this.canvas = document.getElementById(this.canvasId);
         this.gl = getWebGL2Context(this.canvas);
+
         this.resizeCanvas();
         this.vertexBuffer = createSquareVbo(this.gl);
         this.canvasRatio = this.canvas.width / this.canvas.height / 2;
@@ -32,6 +37,7 @@ export class Canvas2D {
 
         this.renderCanvasVAttrib = this.gl.getAttribLocation(this.renderProgram,
                                                              'a_vertex');
+
         this.gl.enableVertexAttribArray(this.renderCanvasVAttrib);
         this.getUniformLocations();
     }
@@ -126,8 +132,9 @@ export class Canvas2D {
 }
 
 export class RenderTextureCanvas extends Canvas2D {
-    constructor(canvasId) {
+    constructor(canvasId, mobiusMngr) {
         super(canvasId, RENDER_FRAGMENT);
+        this.mobiusMngr = mobiusMngr;
     }
 
     render() {
@@ -148,15 +155,18 @@ export class EquirectangularCanvas extends Canvas2D {
 
         this.mobiusMngr = mobiusMngr;
 
-        this.compileRenderShader();
-
         this.isMousePressing = false;
         this.boundOnMouseDown = this.onMouseDown.bind(this);
         this.boundOnMouseMove = this.onMouseMove.bind(this);
         this.boundOnMouseRelease = this.onMouseRelease.bind(this);
+    }
+
+    init() {
+        super.init();
         this.canvas.addEventListener('mousedown', this.boundOnMouseDown);
         this.canvas.addEventListener('mousemove', this.boundOnMouseMove);
         this.canvas.addEventListener('mouseup', this.boundOnMouseRelease);
+        this.compileRenderShader();
     }
 
     compileRenderShader() {
@@ -170,26 +180,38 @@ export class EquirectangularCanvas extends Canvas2D {
         this.renderCanvasVAttrib = this.gl.getAttribLocation(this.renderProgram,
                                                              'a_vertex');
         this.gl.enableVertexAttribArray(this.renderCanvasVAttrib);
-        this.getUniformLocations();
+
+        this.renderProductProgram = this.gl.createProgram();
+        attachShader(this.gl, RENDER_VERTEX_FLIPPED,
+                     this.renderProductProgram, this.gl.VERTEX_SHADER);
+        attachShader(this.gl, EQ_RECTANGULAR_TMPL.render(this.mobiusMngr.getSceneContext()),
+                     this.renderProductProgram, this.gl.FRAGMENT_SHADER);
+        linkProgram(this.gl, this.renderProductProgram);
+        this.renderCanvasFlippedVAttrib = this.gl.getAttribLocation(this.renderProductProgram,
+                                                             'a_vertex');
+        this.gl.enableVertexAttribArray(this.renderCanvasFlippedVAttrib);
+        this.locations = [];
+        this.productLocations = [];
+        this.getUniformLocations(this.locations, this.renderProgram);
+        this.getUniformLocations(this.productLocations, this.renderProductProgram);
     }
 
-    getUniformLocations() {
-        this.uniLocations = [];
-        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
-                                                          'u_texture'));
-        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
-                                                          'u_resolution'));
-        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
-                                                          'u_mobiusArray'));
-        this.mobiusMngr.setUniformLocations(this.gl, this.uniLocations, this.renderProgram);
+    getUniformLocations(locations, program) {
+        locations.push(this.gl.getUniformLocation(program,
+                                                  'u_texture'));
+        locations.push(this.gl.getUniformLocation(program,
+                                                  'u_resolution'));
+        locations.push(this.gl.getUniformLocation(program,
+                                                  'u_mobiusArray'));
+        this.mobiusMngr.setUniformLocations(this.gl, locations, program);
     }
 
-    setUniformValues() {
+    setUniformValues(locations) {
         let uniI = 0;
-        this.gl.uniform1i(this.uniLocations[uniI++], this.panoramaTexture);
-        this.gl.uniform2f(this.uniLocations[uniI++], this.canvas.width, this.canvas.height);
-        this.gl.uniform1fv(this.uniLocations[uniI++], this.mobiusMngr.sl2cMatrixArray);
-        uniI = this.mobiusMngr.setUniformValues(this.gl, this.uniLocations, uniI);
+        this.gl.uniform1i(locations[uniI++], this.panoramaTexture);
+        this.gl.uniform2f(locations[uniI++], this.canvas.width, this.canvas.height);
+        this.gl.uniform1fv(locations[uniI++], this.mobiusMngr.sl2cMatrixArray);
+        uniI = this.mobiusMngr.setUniformValues(this.gl, locations, uniI);
     }
 
     resizeCanvas() {
@@ -235,13 +257,35 @@ export class EquirectangularCanvas extends Canvas2D {
         this.gl.useProgram(this.renderProgram);
         this.gl.activeTexture(this.gl.TEXTURE0);
 
-        this.setUniformValues();
+        this.setUniformValues(this.locations);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderCanvasVAttrib, 2,
                                     this.gl.FLOAT, false, 0, 0);
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
         this.gl.flush();
+    }
+
+    renderProduct() {
+        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        this.gl.useProgram(this.renderProductProgram);
+        this.gl.activeTexture(this.gl.TEXTURE0);
+
+        this.setUniformValues(this.productLocations);
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+        this.gl.vertexAttribPointer(this.renderCanvasFlippedVAttrib, 2,
+                                    this.gl.FLOAT, false, 0, 0);
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+        this.gl.flush();
+    }
+
+    save() {
+        this.renderProduct();
+        this.saveImage(this.gl, 0, 0,
+                       this.canvas.width, this.canvas.height,
+                       'equirectangular.png');
+        //this.render();
     }
 }
 
@@ -261,16 +305,20 @@ export class InsideSphereCanvas extends Canvas2D {
         this.isMousePressing = false;
         this.updateCamera();
 
-        this.compileRenderShader();
-
         this.boundOnMouseDown = this.onMouseDown.bind(this);
         this.boundOnMouseMove = this.onMouseMove.bind(this);
         this.boundOnMouseRelease = this.onMouseRelease.bind(this);
         this.boundOnMouseWheel = this.onMouseWheel.bind(this);
+    }
+
+    init() {
+        super.init();
         this.canvas.addEventListener('mousedown', this.boundOnMouseDown);
         this.canvas.addEventListener('mousemove', this.boundOnMouseMove);
         this.canvas.addEventListener('mouseup', this.boundOnMouseRelease);
         this.canvas.addEventListener('wheel', this.boundOnMouseWheel);
+
+        this.compileRenderShader();
     }
 
     compileRenderShader() {
@@ -379,17 +427,21 @@ export class OutsideSphereCanvas extends Canvas2D {
         this.cameraDistance = 2;
         this.updateCamera();
 
-        this.compileRenderShader();
-
         this.boundOnMouseDown = this.onMouseDown.bind(this);
         this.boundOnMouseMove = this.onMouseMove.bind(this);
         this.boundOnMouseRelease = this.onMouseRelease.bind(this);
         this.boundOnMouseWheel = this.onMouseWheel.bind(this);
+    }
+
+    init() {
+        super.init();
         this.canvas.addEventListener('mousedown', this.boundOnMouseDown);
         this.canvas.addEventListener('mousemove', this.boundOnMouseMove);
         this.canvas.addEventListener('mouseup', this.boundOnMouseRelease);
         this.canvas.addEventListener('mouseout', this.boundOnMouseRelease);
         this.canvas.addEventListener('wheel', this.boundOnMouseWheel);
+
+        this.compileRenderShader();
     }
 
     compileRenderShader() {

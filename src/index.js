@@ -2,21 +2,24 @@ import Vue from 'vue';
 import Buefy from 'buefy';
 import 'buefy/dist/buefy.css';
 import Root from './vue/root.vue';
-import { RenderTextureCanvas, EquirectangularCanvas,
-         InsideSphereCanvas, OutsideSphereCanvas } from './canvas.js';
 import { ThetaStream, TextureHandler } from './texture.js';
 import { MobiusManager, MobiusRotateAroundAxis,
          MobiusTranslateAlongAxis, MobiusZoomIn } from './mobius.js';
 //import dat from '../lib/dat.gui/build/dat.gui.min.js';
 import { PI, TWO_PI, PI_2, PI_3 } from './radians.js';
+import CanvasManager from './canvasManager.js';
 
 window.addEventListener('load', () => {
     Vue.use(Buefy);
     window.Vue = Vue;
 
     const mobius = new MobiusManager();
-
-    const d = { 'mobiusMngr': mobius };
+    const canvasMngr = new CanvasManager('equirectCanvas',
+                                         'sphereInnerCanvas',
+                                         'sphereOuterCanvas',
+                                         mobius);
+    const d = { 'mobiusMngr': mobius,
+                'canvasMngr': canvasMngr };
     /* eslint-disable no-new */
     new Vue({
         el: '#app',
@@ -39,20 +42,14 @@ window.addEventListener('load', () => {
 
     const thetaS = new ThetaStream(true);
 //    const renderTexCanvas = new RenderTextureCanvas('renderTextureCanvas');
-    const eqRectCanvas = new EquirectangularCanvas('equirectCanvas',
-                                                   mobius);
-    const insideSphereCanvas = new InsideSphereCanvas('sphereInnerCanvas',
-                                                      mobius);
-    const outsideSphereCanvas = new OutsideSphereCanvas('sphereOuterCanvas',
-                                                        mobius);
-    const canvasList = [eqRectCanvas,
-                        insideSphereCanvas, outsideSphereCanvas];
+    canvasMngr.init();
+    const canvasList = [canvasMngr.eqRectCanvas,
+                        canvasMngr.insideSphereCanvas,
+                        canvasMngr.outsideSphereCanvas];
     const texHandler = new TextureHandler(canvasList, thetaS);
 
     function resize () {
-        for (const c of canvasList) {
-            c.resizeCanvas();
-        }
+        canvasMngr.resizeCanvases();
     }
 
     let resizeTimer = setTimeout(resize, 500);
@@ -63,10 +60,9 @@ window.addEventListener('load', () => {
 
     function renderLoop() {
         texHandler.update();
-//        renderTexCanvas.render();
-        eqRectCanvas.render();
-        insideSphereCanvas.render();
-        outsideSphereCanvas.render();
+
+        canvasMngr.renderCanvases();
+
         requestAnimationFrame(renderLoop);
     }
 
