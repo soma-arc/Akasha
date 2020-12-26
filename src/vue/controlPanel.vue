@@ -30,7 +30,6 @@ export default {
     height: 100%;
     overflow: auto;
 
-
     padding: 15px;
 }
 
