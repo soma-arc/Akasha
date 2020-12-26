@@ -31,13 +31,16 @@ window.addEventListener('load', () => {
     });
 
     const m = new MobiusRotateAroundAxis(PI_2, PI_2, 0);
+    m.index = 0;
     mobius.addTransformation(m);
     const translate = new MobiusTranslateAlongAxis(PI, 0,
                                                    PI, PI,
                                                    PI, PI_2,
                                                    PI, PI_2);
+    translate.index = 1;
     mobius.addTransformation(translate);
     const zoom = new MobiusZoomIn(PI, PI_2, 1, 0);
+    zoom.index = 2;
     mobius.addTransformation(zoom);
 
     const thetaS = new ThetaStream(true);

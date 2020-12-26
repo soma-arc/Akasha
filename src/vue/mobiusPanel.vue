@@ -49,6 +49,8 @@ export default {
             variations: [{ id: 0, name: 'Rotation' },
                          { id: 1, name: 'Translation' },
                          { id: 2, name: 'Zoom' }],
+            mobiusIndex: 3,
+            numDeleted: 0
         }
     },
     components: {
@@ -66,7 +68,17 @@ export default {
             if (this.mobiusMngr.selectedTransformation === undefined) return;
             this.mobiusMngr.selectedTransformation.selected = true;
         },
-        deleteSelectedMobius: function() {},
+        deleteSelectedMobius: function() {
+            if (this.mobiusMngr.transformations.length === 0 ||
+                this.mobiusMngr.selectedTransformation === undefined) return;
+            this.mobiusMngr.transformations.splice(
+                this.mobiusMngr.selectedTransformation.index - this.numDeleted, 1);
+            this.mobiusMngr.selectedTransformation = undefined;
+            this.numDeleted++;
+
+            this.mobiusMngr.update2();
+            this.canvasMngr.reCompileShaders();
+        },
         addMobius: function() {
             let m;
             if (this.selectedVariation.name === 'Rotation') {
@@ -79,6 +91,8 @@ export default {
             } else if (this.selectedVariation.name === 'Zoom') {
                 m = new MobiusZoomIn(PI, PI_2, 1, 0);
             }
+            m.index = this.mobiusIndex;
+            this.mobiusIndex++;
 
             this.mobiusMngr.addTransformation(m);
             this.canvasMngr.reCompileShaders();

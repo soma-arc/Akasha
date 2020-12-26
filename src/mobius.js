@@ -83,6 +83,7 @@ class Mobius {
         this.theta = 0;
         this.lng = 0;
         this.lat = 0;
+        this.index = -1;
     }
 
     select (lnglat) {
