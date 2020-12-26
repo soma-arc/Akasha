@@ -14,7 +14,7 @@
   </b-field>
   <br><br><br>
   <b-field>
-    <b-button @click="">Delete</b-button>
+    <b-button @click="deleteSelectedMobius">Delete</b-button>
   </b-field>
    <b-field label="Add Transformations">
     <b-select placeholder="Select a variation"
@@ -27,12 +27,12 @@
       </option>
     </b-select>
     <b-button @click="">Add</b-button>
-  </b-field>
-  <b-field>
-    <rotate-control v-show="selectedObjName === 'MobiusRotateAroundAxis'"
-                    :rotate="mobiusMngr.selectedTransformation"
-                    :mobiusMngr="mobiusMngr" />
-  </b-field>
+   </b-field>
+   <b-field>
+     <rotate-control v-show="selectedObjName === 'MobiusRotateAroundAxis'"
+                     :rotate="mobiusMngr.selectedTransformation"
+                     :mobiusMngr="mobiusMngr"></rotate-control>
+   </b-field>
 </div>
 </template>
 
@@ -46,7 +46,7 @@ export default {
             selectedVariation: undefined,
             variations: [{ id: 0, name: 'Rotation' },
                          { id: 1, name: 'Translation' },
-                         { id: 2, name: 'Zoom' }]
+                         { id: 2, name: 'Zoom' }],
         }
     },
     components: {
@@ -63,7 +63,8 @@ export default {
             this.mobiusMngr.unselectAll();
             if (this.mobiusMngr.selectedTransformation === undefined) return;
             this.mobiusMngr.selectedTransformation.selected = true;
-        }
+        },
+        deleteSelectedMobius: function() {}
     }
 }
 </script>

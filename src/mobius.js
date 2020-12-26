@@ -80,6 +80,9 @@ export function CoordOnSphere (theta, phi) {
 class Mobius {
     constructor () {
         this.sl2c = SL2C.UNIT;
+        this.theta = 0;
+        this.lng = 0;
+        this.lat = 0;
     }
 
     select (lnglat) {

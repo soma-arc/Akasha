@@ -28,10 +28,10 @@ export default {
     display: flex;
     flex-direction: column;
     height: 100%;
-  overflow: auto;
+    overflow: auto;
 
 
-  padding: 15px;
+    padding: 15px;
 }
 
 .objList {
@@ -40,35 +40,35 @@ export default {
     height: 100px;
 }
 
-ui-tabs__header-items {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    width: 300px;
-}
+/* ui-tabs__header-items { */
+/*     margin: 0; */
+/*     display: flex; */
+/*     flex-direction: column; */
+/*     width: 300px; */
+/* } */
 
-.ui-tabs {
-    padding: 0;
-    margin:0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
+/* .ui-tabs { */
+/*     padding: 0; */
+/*     margin:0; */
+/*     flex: 1; */
+/*     display: flex; */
+/*     flex-direction: column; */
+/* } */
 
-.ui-tabs__body {
-    flex:1;
-    margin:0;
-    padding:0;
-    overflow-y: auto;
-    align-items: center;
-}
+/* .ui-tabs__body { */
+/*     flex:1; */
+/*     margin:0; */
+/*     padding:0; */
+/*     overflow-y: auto; */
+/*     align-items: center; */
+/* } */
 
-.ui-tab {
-    padding-top: 20px;
-    flex:1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+/* .ui-tab { */
+/*     padding-top: 20px; */
+/*     flex:1; */
+/*     display: flex; */
+/*     flex-direction: column; */
+/*     align-items: center; */
+/* } */
 
 </style>

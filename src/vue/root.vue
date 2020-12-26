@@ -46,6 +46,8 @@ export default {
             this.canvasMngr.saveEquirectangular();
         },
         clearMobius: function() {
+            this.mobiusMngr.selectedTransformation = undefined;
+            this.mobiusMngr.unselectAll();
             this.mobiusMngr.clear();
             this.canvasMngr.reCompileShaders();
         }
