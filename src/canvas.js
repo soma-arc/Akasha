@@ -1,8 +1,9 @@
 import { getWebGL2Context, createRGBTextures, createSquareVbo,
          attachShader, linkProgram } from './glUtils';
 import { DegToRad, TWO_PI, PI } from './radians.js';
-import { RENDER_VERTEX, RENDER_VERTEX_FLIPPED, RENDER_FRAGMENT,
-         EQ_RECTANGULAR_TMPL, OUTSIDE_SPHERE_TMPL,
+import { RENDER_VERTEX, RENDER_FRAGMENT,
+         EQ_RECTANGULAR_TMPL, EQ_RECTANGULAR_FLIPPED_TMPL,
+         OUTSIDE_SPHERE_TMPL,
          INSIDE_SPHERE_TMPL } from './shaders/shaders.js';
 import Complex from './complex.js';
 
@@ -182,9 +183,9 @@ export class EquirectangularCanvas extends Canvas2D {
         this.gl.enableVertexAttribArray(this.renderCanvasVAttrib);
 
         this.renderProductProgram = this.gl.createProgram();
-        attachShader(this.gl, RENDER_VERTEX_FLIPPED,
+        attachShader(this.gl, RENDER_VERTEX,
                      this.renderProductProgram, this.gl.VERTEX_SHADER);
-        attachShader(this.gl, EQ_RECTANGULAR_TMPL.render(this.mobiusMngr.getSceneContext()),
+        attachShader(this.gl, EQ_RECTANGULAR_FLIPPED_TMPL.render(this.mobiusMngr.getSceneContext()),
                      this.renderProductProgram, this.gl.FRAGMENT_SHADER);
         linkProgram(this.gl, this.renderProductProgram);
         this.renderCanvasFlippedVAttrib = this.gl.getAttribLocation(this.renderProductProgram,
@@ -285,7 +286,6 @@ export class EquirectangularCanvas extends Canvas2D {
         this.saveImage(this.gl, 0, 0,
                        this.canvas.width, this.canvas.height,
                        'equirectangular.png');
-        //this.render();
     }
 }
 
