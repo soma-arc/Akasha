@@ -19,7 +19,8 @@
       </li>
     </ul>
   </header>
-  <main-panel v-bind:mobiusMngr="mobiusMngr"/>
+  <main-panel :mobiusMngr="mobiusMngr"
+              :canvasMngr="canvasMngr"/>
   <footer>
     <div id="left">
       <a id="ghLink" href="https://github.com/soma-arc/Akasha"

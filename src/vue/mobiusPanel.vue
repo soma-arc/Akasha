@@ -16,7 +16,7 @@
   <b-field>
     <b-button @click="deleteSelectedMobius">Delete</b-button>
   </b-field>
-   <b-field label="Add Transformations">
+  <b-field label="Add Transformations">
     <b-select placeholder="Select a variation"
               v-model="selectedVariation">
       <option
@@ -26,21 +26,23 @@
         {{ option.name }}
       </option>
     </b-select>
-    <b-button @click="">Add</b-button>
-   </b-field>
-   <b-field>
-     <rotate-control v-show="selectedObjName === 'MobiusRotateAroundAxis'"
-                     :rotate="mobiusMngr.selectedTransformation"
-                     :mobiusMngr="mobiusMngr"></rotate-control>
-   </b-field>
+    <b-button @click="addMobius">Add</b-button>
+  </b-field>
+  <b-field>
+    <rotate-control v-show="selectedObjName === 'MobiusRotateAroundAxis'"
+                    :rotate="mobiusMngr.selectedTransformation"
+                    :mobiusMngr="mobiusMngr"></rotate-control>
+  </b-field>
 </div>
 </template>
 
 <script>
 import RotateControl from './rotateControl.vue';
-
+import { MobiusRotateAroundAxis,
+         MobiusTranslateAlongAxis, MobiusZoomIn } from '../mobius.js'
+import { PI, PI_2 } from '../radians.js';
 export default {
-    props: ['mobiusMngr'],
+    props: ['mobiusMngr', 'canvasMngr'],
     data: function () {
         return {
             selectedVariation: undefined,
@@ -64,7 +66,23 @@ export default {
             if (this.mobiusMngr.selectedTransformation === undefined) return;
             this.mobiusMngr.selectedTransformation.selected = true;
         },
-        deleteSelectedMobius: function() {}
+        deleteSelectedMobius: function() {},
+        addMobius: function() {
+            let m;
+            if (this.selectedVariation.name === 'Rotation') {
+                m = new MobiusRotateAroundAxis(PI_2, PI_2, 0);
+            } else if (this.selectedVariation.name === 'Translation') {
+                m = new MobiusTranslateAlongAxis(PI, 0,
+                                                 PI, PI,
+                                                 PI, PI_2,
+                                                 PI, PI_2);
+            } else if (this.selectedVariation.name === 'Zoom') {
+                m = new MobiusZoomIn(PI, PI_2, 1, 0);
+            }
+
+            this.mobiusMngr.addTransformation(m);
+            this.canvasMngr.reCompileShaders();
+        }
     }
 }
 </script>

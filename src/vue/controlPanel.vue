@@ -2,7 +2,8 @@
   <div class="controlPanel">
     <b-tabs v-model="activeTab">
       <b-tab-item label="Scene">
-        <mobius-panel v-bind:mobiusMngr="mobiusMngr" />
+        <mobius-panel :mobiusMngr="mobiusMngr"
+                      :canvasMngr="canvasMngr"/>
       </b-tab-item>
     </b-tabs>  
   </div>
@@ -12,7 +13,7 @@
 import MobiusPanel from './mobiusPanel.vue';
 
 export default {
-    props: ['mobiusMngr'],
+    props: ['mobiusMngr', 'canvasMngr'],
     components: {
         MobiusPanel
     }
