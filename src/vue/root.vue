@@ -6,7 +6,7 @@
     </ul>
     <ul class="headerRight">
       <li class="buttonLi">
-        <button class="button" @click="">Clear</button>
+        <button class="button" @click="clearMobius">Clear</button>
       </li>
       <li class="buttonLi">
         <button class="button" @click="">Export</button>
@@ -44,6 +44,10 @@ export default {
     methods: {
         saveEquirectangular: function() {
             this.canvasMngr.saveEquirectangular();
+        },
+        clearMobius: function() {
+            this.mobiusMngr.clear();
+            this.canvasMngr.reCompileShaders();
         }
     }
 }

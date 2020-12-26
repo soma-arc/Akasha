@@ -26,6 +26,12 @@ export default class CanvasManager {
         this.outsideSphereCanvas.resizeCanvas();
     }
 
+    reCompileShaders() {
+        this.eqRectCanvas.compileRenderShader();
+        this.insideSphereCanvas.compileRenderShader();
+        this.outsideSphereCanvas.compileRenderShader();
+    }
+
     renderCanvases() {
         this.eqRectCanvas.render();
         this.insideSphereCanvas.render();

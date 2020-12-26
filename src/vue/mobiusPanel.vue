@@ -30,7 +30,7 @@
   </b-field>
   <b-field>
     <rotate-control v-show="selectedObjName === 'MobiusRotateAroundAxis'"
-                    :rotate="mobiusMngr.selectedTransformation",
+                    :rotate="mobiusMngr.selectedTransformation"
                     :mobiusMngr="mobiusMngr" />
   </b-field>
 </div>

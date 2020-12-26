@@ -656,6 +656,14 @@ export class MobiusManager {
         return uniI;
     }
 
+    clear() {
+        this.unselectAll();
+        this.selectedTransformation = undefined;
+        //this.transformations = [];
+        this.transformations.splice(0, this.transformations.length);
+        this.update();
+    }
+
     getSceneContext () {
         const context = {};
         for (const gen of this.transformations) {
