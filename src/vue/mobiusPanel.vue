@@ -12,12 +12,12 @@
       </option>
     </b-select>
   </b-field>
-  <br><br><br>
+  <br><br>
   <b-field>
     <b-button @click="deleteSelectedMobius">Delete</b-button>
   </b-field>
   <b-field label="Add Transformations">
-    <b-select placeholder="Select a variation"
+    <b-select placeholder="Select a transformation"
               v-model="selectedVariation">
       <option
         v-for="option in variations"
@@ -31,13 +31,21 @@
   <b-field>
     <rotate-control v-show="selectedObjName === 'MobiusRotateAroundAxis'"
                     :rotate="mobiusMngr.selectedTransformation"
-                    :mobiusMngr="mobiusMngr"></rotate-control>
+                    :mobiusMngr="mobiusMngr" />
+    <translate-control v-show="selectedObjName === 'MobiusTranslateAlongAxis'"
+                  :translate="mobiusMngr.selectedTransformation"
+                  :mobiusMngr="mobiusMngr"/>
+    <zoom-control v-show="selectedObjName === 'MobiusZoomIn'"
+                  :zoom="mobiusMngr.selectedTransformation"
+                  :mobiusMngr="mobiusMngr"/>
   </b-field>
 </div>
 </template>
 
 <script>
 import RotateControl from './rotateControl.vue';
+import TranslateControl from './translateControl.vue';
+import ZoomControl from './zoomControl.vue';
 import { MobiusRotateAroundAxis,
          MobiusTranslateAlongAxis, MobiusZoomIn } from '../mobius.js'
 import { PI, PI_2 } from '../radians.js';
@@ -54,7 +62,7 @@ export default {
         }
     },
     components: {
-        RotateControl
+        RotateControl, TranslateControl, ZoomControl
     },
     computed: {
         selectedObjName: function() {

@@ -4,13 +4,11 @@
     <b-input v-model.number="rotate.lng"
              type="number"
              @input="updateRotation"
-             min="0" max="6.24"
-             step="0.1"></b-input>
+             min="0" max="6.24" step="0.01"/>
     <b-input v-model.number="rotate.lat"
              type="number"
              @input="updateRotation"
-             min="0" max="6.24"
-             step="0.1"></b-input>
+             min="0" max="6.24" step="0.01"/>
   </b-field>
   <b-field label="Rotation (radians)">
     <b-input v-model.number="theta" type="number"
