@@ -138,7 +138,8 @@ export class ThetaStream {
     }
 }
 
-const DEFAULT_CHECKER_TEXTURE = require('./img/checker.png');
+//const DEFAULT_CHECKER_TEXTURE = require('./img/checker.png');
+const DEFAULT_CHECKER_TEXTURE = require('./img/sphere_minatomirai.jpg');
 
 export class TextureHandler {
     constructor (canvases, video) {
