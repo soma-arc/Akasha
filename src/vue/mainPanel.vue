@@ -86,7 +86,6 @@ export default {
     align-items: center;
     justify-content: center;    
     overflow:hidden;
-    
 }
 
 </style>
