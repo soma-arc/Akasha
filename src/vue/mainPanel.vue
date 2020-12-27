@@ -20,14 +20,15 @@
     </div>
   </div>
   <control-panel :mobiusMngr="mobiusMngr"
-                 :canvasMngr="canvasMngr"/>
+                 :canvasMngr="canvasMngr"
+                 :texHandler="texHandler"/>
 </div>
 </template>
 
 <script>
 import ControlPanel from './controlPanel.vue';
 export default {
-    props: ['mobiusMngr', 'canvasMngr'],
+    props: ['mobiusMngr', 'canvasMngr', 'texHandler'],
     components: {
         ControlPanel
     }

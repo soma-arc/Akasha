@@ -18,8 +18,16 @@ window.addEventListener('load', () => {
                                          'sphereInnerCanvas',
                                          'sphereOuterCanvas',
                                          mobius);
+
+    const thetaS = new ThetaStream(true);
+    const canvasList = [canvasMngr.eqRectCanvas,
+                        canvasMngr.insideSphereCanvas,
+                        canvasMngr.outsideSphereCanvas];
+    const texHandler = new TextureHandler(canvasList, thetaS);
+
     const d = { 'mobiusMngr': mobius,
-                'canvasMngr': canvasMngr };
+                'canvasMngr': canvasMngr,
+                'texHandler': texHandler };
     /* eslint-disable no-new */
     new Vue({
         el: '#app',
@@ -43,13 +51,10 @@ window.addEventListener('load', () => {
     zoom.index = 2;
     mobius.addTransformation(zoom);
 
-    const thetaS = new ThetaStream(true);
 //    const renderTexCanvas = new RenderTextureCanvas('renderTextureCanvas');
     canvasMngr.init();
-    const canvasList = [canvasMngr.eqRectCanvas,
-                        canvasMngr.insideSphereCanvas,
-                        canvasMngr.outsideSphereCanvas];
-    const texHandler = new TextureHandler(canvasList, thetaS);
+
+    texHandler.init();
 
     function resize () {
         canvasMngr.resizeCanvases();

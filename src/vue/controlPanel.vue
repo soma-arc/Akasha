@@ -5,17 +5,24 @@
         <mobius-panel :mobiusMngr="mobiusMngr"
                       :canvasMngr="canvasMngr"/>
       </b-tab-item>
+      <b-tab-item label="input">
+        <texturePanel :mobiusMngr="mobiusMngr"
+                      :canvasMngr="canvasMngr"
+                      :texHandler="texHandler"/>
+      </b-tab-item>
     </b-tabs>
   </div>
 </template>
 
 <script>
 import MobiusPanel from './mobiusPanel.vue';
+import TexturePanel from './texturePanel.vue';
 
 export default {
-    props: ['mobiusMngr', 'canvasMngr'],
+    props: ['mobiusMngr', 'canvasMngr', 'texHandler'],
     components: {
-        MobiusPanel
+        MobiusPanel,
+        TexturePanel
     }
 }
 </script>

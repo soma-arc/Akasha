@@ -32,8 +32,6 @@ export default {
     },
     methods: {
         updateRotation: function() {
-            console.log(this.theta);
-            console.log(this.rotate);
             this.rotate.theta = this.theta;
             this.rotate.update2();
             this.mobiusMngr.update2();

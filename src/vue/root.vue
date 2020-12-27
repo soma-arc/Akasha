@@ -3,7 +3,8 @@
   <header-panel :mobiusMngr="mobiusMngr"
                 :canvasMngr="canvasMngr"/>
   <main-panel :mobiusMngr="mobiusMngr"
-              :canvasMngr="canvasMngr"/>
+              :canvasMngr="canvasMngr"
+              :texHandler="texHandler"/>
   <footer-panel/>
 </div>
 </template>
@@ -14,7 +15,7 @@ import MainPanel from './mainPanel.vue';
 import FooterPanel from './footerPanel.vue';
 
 export default {
-    props: ['mobiusMngr', 'canvasMngr'],
+    props: ['mobiusMngr', 'canvasMngr', 'texHandler'],
     components: {
         HeaderPanel,
         MainPanel,

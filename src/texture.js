@@ -138,15 +138,92 @@ export class ThetaStream {
     }
 }
 
-//const DEFAULT_CHECKER_TEXTURE = require('./img/checker.png');
-const DEFAULT_CHECKER_TEXTURE = require('./img/sphere_minatomirai.jpg');
+const DEFAULT_TEXTURE = require('./img/sphere_minatomirai.jpg');
+const CHECKER_TEXTURE = require('./img/checker.png');
 
 export class TextureHandler {
     constructor (canvases, video) {
+        this.canvases = canvases;
         this.video = video;
-        this.canvasInitFunctions = canvases.map((c) => {
+
+        this.useVideo = false;
+
+        this.defaultTexture = new Image();
+        this.defaultTexture.src = DEFAULT_TEXTURE;
+
+        this.checkerTexture = new Image();
+        this.checkerTexture.src = CHECKER_TEXTURE;
+
+        this.originalTexture = new Image();
+    }
+
+    init() {
+        this.canvasInitFunctions = this.canvases.map((c) => {
             return c.boundInitPanoramaTexture;
         });
+        this.updatePanoramaTexture(this.defaultTexture,
+                                   this.defaultTexture.width,
+                                   this.defaultTexture.height);
+    }
+
+    changeToDefault() {
+        this.useVideo = false;
+        this.updatePanoramaTexture(this.defaultTexture,
+                                   this.defaultTexture.width,
+                                   this.defaultTexture.height);
+        for (const canvas of this.canvases) {
+            canvas.render();
+        }
+    }
+
+    changeToChecker() {
+        this.useVideo = false;
+        this.updatePanoramaTexture(this.checkerTexture,
+                                   this.checkerTexture.width,
+                                   this.checkerTexture.height);
+        for (const canvas of this.canvases) {
+            canvas.render();
+        }
+    }
+
+    changeToCamera() {
+        this.useVideo = true;
+        this.connectVideo();
+    }
+
+    changeToOriginal() {
+        this.updatePanoramaTexture(this.originalTexture,
+                                   this.originalTexture.width,
+                                   this.originalTexture.height);
+        for (const canvas of this.canvases) {
+            canvas.render();
+        }
+    }
+
+    loadOriginal() {
+        this.useVideo = false;
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            this.originalTexture.addEventListener('load', () => {
+                this.updatePanoramaTexture(this.originalTexture,
+                                           this.originalTexture.width,
+                                           this.originalTexture.height);
+                for (const canvas of this.canvases) {
+                    canvas.render();
+                }
+            });
+            this.originalTexture.src = reader.result;
+        });
+        const a = document.createElement('input');
+        a.type = 'file';
+        a.addEventListener('change', function(event) {
+            const files = event.target.files;
+            reader.readAsDataURL(files[0]);
+        });
+        a.click();
+    }
+
+    connectVideo () {
         this.video.connect(this.initCanvasTextures.bind(this),
                            () => {
                                this.initCanvasTextures(this.defaultTexture.width,
@@ -155,11 +232,6 @@ export class TextureHandler {
                                                           this.defaultTexture.width,
                                                           this.defaultTexture.height);
                            });
-        this.useVideo = true;
-        this.canvases = canvases;
-
-        this.defaultTexture = new Image();
-        this.defaultTexture.src = DEFAULT_CHECKER_TEXTURE;
     }
 
     update () {
