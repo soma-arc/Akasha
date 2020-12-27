@@ -5,7 +5,7 @@
         <mobius-panel :mobiusMngr="mobiusMngr"
                       :canvasMngr="canvasMngr"/>
       </b-tab-item>
-    </b-tabs>  
+    </b-tabs>
   </div>
 </template>
 
@@ -30,6 +30,8 @@ export default {
     flex-direction: column;
     height: 100%;
     overflow: auto;
+    margin: 0;
+    padding: 0;
 
     padding: 15px;
 }

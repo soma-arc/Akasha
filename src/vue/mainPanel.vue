@@ -1,27 +1,27 @@
 <template>
-  <div class="contentPanel">
-    <div id="canvasParentPanel">
+<div class="contentPanel">
+  <div class="leftPanel">
+    <div class="canvasPanel" id="equiCanvas">
+      <div class="canvasParent" id="equiParent">
+        <canvas id="equirectCanvas"></canvas>
+      </div>
+    </div>
+    <div id="sphereCanvasPanel">
       <div class="canvasPanel">
         <div class="canvasParent">
-          <canvas id="equirectCanvas"></canvas>
+          <canvas id="sphereOuterCanvas"></canvas>
         </div>
       </div>
-      <div id="sphereCanvasPanel">
-        <div class="canvasPanel">
-          <div class="canvasParent">
-            <canvas id="sphereOuterCanvas"></canvas>
-          </div>
-        </div>
-        <div class="canvasPanel">
+      <div class="canvasPanel">
           <div class="canvasParent">
             <canvas id="sphereInnerCanvas"></canvas>
           </div>
-        </div>
       </div>
     </div>
-    <control-panel :mobiusMngr="mobiusMngr"
-                   :canvasMngr="canvasMngr"/>
   </div>
+  <control-panel :mobiusMngr="mobiusMngr"
+                 :canvasMngr="canvasMngr"/>
+</div>
 </template>
 
 <script>
@@ -39,41 +39,17 @@ export default {
 .contentPanel {
     flex: 1;
     display: flex;
+    flex-direction: row;
+    overflow: hidden;
 }
 
-#equirectCanvas {
-    align-items: center;
-}
-
-#canvasParentPanel {
+.canvasParent {
     flex: 1;
     display: flex;
-    flex-direction: column;
+    overflow: hidden;
 }
 
-#sphereCanvasPanel {
-    flex: 1;
-    display: flex;
-}
-
-#canvas3dOrb #canvas3dGen {
-    width: 100%;
-    height: 100%;
-    cursor: crosshair;
-}
-
-.renderPropertyPanel{
-    height: 50px;
-
-    background-color: white;
-    border-top: ridge;
-    border-color: gray;
-    display: flex;
-    align-items: center;
-    padding-left: 5px;
-}
-
-.canvasPanel {
+.leftPanel {
     border-style: ridge;
     border-color: gray;
     background-color: gray;
@@ -83,11 +59,34 @@ export default {
     overflow: hidden;
 }
 
-.canvasParent {
+.canvasPanel {
+    border-style: ridge;
+    border-color: gray;
+    background-color: gray;
     flex: 1;
     display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+.canvas {
+    width: 100%;
+    height: 100%;
+}
+
+#sphereCanvasPanel {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+}
+
+#equiParent {
+    display: flex;
+    flex: 1;
     align-items: center;
-    justify-content: center;
+    justify-content: center;    
+    overflow:hidden;
+    
 }
 
 </style>
