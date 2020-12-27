@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 
 const src  = path.resolve(__dirname, 'src');
-const dist = path.resolve(__dirname, 'dist');
+const dist = path.resolve(__dirname, 'docs');
 const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = () => ({
@@ -79,7 +79,7 @@ module.exports = () => ({
     },
 
     devServer: {
-        contentBase: 'dist',
+        contentBase: 'docs',
         port: 3000,
     },
 
