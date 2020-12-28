@@ -13,11 +13,11 @@ window.addEventListener('load', () => {
     Vue.use(Buefy);
     window.Vue = Vue;
 
-    const mobius = new MobiusManager();
+    const mobiusMngr = new MobiusManager();
     const canvasMngr = new CanvasManager('equirectCanvas',
                                          'sphereInnerCanvas',
                                          'sphereOuterCanvas',
-                                         mobius);
+                                         mobiusMngr);
 
     const thetaS = new ThetaStream(true);
     const canvasList = [canvasMngr.eqRectCanvas,
@@ -25,7 +25,7 @@ window.addEventListener('load', () => {
                         canvasMngr.outsideSphereCanvas];
     const texHandler = new TextureHandler(canvasList, thetaS);
 
-    const d = { 'mobiusMngr': mobius,
+    const d = { 'mobiusMngr': mobiusMngr,
                 'canvasMngr': canvasMngr,
                 'texHandler': texHandler };
     /* eslint-disable no-new */
@@ -39,17 +39,20 @@ window.addEventListener('load', () => {
     });
 
     const m = new MobiusRotateAroundAxis(PI_2, PI_2, 0);
-    m.index = 0;
-    mobius.addTransformation(m);
+    m.index = mobiusMngr.mobiusIndex;
+    mobiusMngr.mobiusIndex++;
+    mobiusMngr.addTransformation(m);
     const translate = new MobiusTranslateAlongAxis(PI, 0,
                                                    PI, PI,
                                                    PI, PI_2,
                                                    PI, PI_2);
-    translate.index = 1;
-    mobius.addTransformation(translate);
+    translate.index = mobiusMngr.mobiusIndex;
+    mobiusMngr.mobiusIndex++;
+    mobiusMngr.addTransformation(translate);
     const zoom = new MobiusZoomIn(PI, PI_2, 1, 0);
-    zoom.index = 2;
-    mobius.addTransformation(zoom);
+    zoom.index = mobiusMngr.mobiusIndex;
+    mobiusMngr.mobiusIndex++;
+    mobiusMngr.addTransformation(zoom);
 
 //    const renderTexCanvas = new RenderTextureCanvas('renderTextureCanvas');
     canvasMngr.init();

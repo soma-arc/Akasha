@@ -11,7 +11,7 @@
              min="0" max="6.24" step="0.01"/>
   </b-field>
   <b-field label="Rotation (radians)">
-    <b-input v-model.number="theta" type="number"
+    <b-input v-model.number="rotate.theta" type="number"
              :min="-6.28" :max="6.28" :step="0.01"
              @input="updateRotation"></b-input>
   </b-field>
@@ -25,12 +25,10 @@ export default {
     },
     data: function () {
         return {
-            theta: 0
         }
     },
     methods: {
         updateRotation: function() {
-            this.rotate.theta = this.theta;
             this.rotate.update2();
             this.mobiusMngr.update2();
         }

@@ -28,6 +28,7 @@ export default{
             this.canvasMngr.saveEquirectangular();
         },
         clearMobius: function() {
+            this.mobiusMngr.numDeleted += this.mobiusMngr.transformations.length;
             this.mobiusMngr.selectedTransformation = undefined;
             this.mobiusMngr.unselectAll();
             this.mobiusMngr.clear();

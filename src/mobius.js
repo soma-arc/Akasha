@@ -566,6 +566,8 @@ export class MobiusManager {
         this.transformations = [];
         this.selectionState = new SelectionState();
         this.selectedTransformation = undefined;
+        this.numDeleted = 0;
+        this.mobiusIndex = 0;
     }
 
     unselectAll() {
@@ -651,7 +653,6 @@ export class MobiusManager {
                 d['lng'] = t.lng;
                 d['lat'] = t.lat;
                 d['theta'] = t.theta;
-                d['index'] = t.index;
             } else if (t.getClassName() === 'MobiusTranslateAlongAxis') {
                 d['pLng'] = t.pLngLat.re;
                 d['pLat'] = t.pLngLat.im;
@@ -661,13 +662,11 @@ export class MobiusManager {
                 d['r1Lat'] = t.r1LngLat.im;
                 d['r2Lng'] = t.r2LngLat.re;
                 d['r2Lat'] = t.r2LngLat.im;
-                d['index'] = t.index;
             } else if (t.getClassName() === 'MobiusZoomIn') {
                 d['lng'] = t.lng;
                 d['lat'] = t.lat;
                 d['zoomReal'] = t.zoomReal;
                 d['zoomImag'] = t.zoomImag;
-                d['index'] = t.index;
             }
             data['transformations'].push(d);
         }
@@ -684,6 +683,8 @@ export class MobiusManager {
     importMobiusTransformations(canvasMngr) {
         const reader = new FileReader();
         reader.addEventListener('load', () => {
+            this.numDeleted = 0;
+            this.mobiusIndex = 0;
             this.clear();
             const json = JSON.parse(reader.result);
             for (const t of json['transformations']) {
@@ -701,7 +702,8 @@ export class MobiusManager {
                     m = new MobiusZoomIn(t.lng, t.lat,
                                          t.zoomReal, t.zoomImag);
                 }
-                m.index = t.index;
+                m.index = this.mobiusIndex;
+                this.mobiusIndex++;
                 this.addTransformation(m);
             }
             this.update();
@@ -753,6 +755,7 @@ export class MobiusManager {
             }
             context[genName]++;
         }
+        console.log(context);
         return context;
     }
 

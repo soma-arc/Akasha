@@ -184,14 +184,14 @@ const int OBJ_CYLINDER = 2;
 vec2 distFunc(vec3 p) {
     vec2 d = opUnion(vec2(distSphere(p, SPHERE), OBJ_SPHERE),
                      vec2(distPlane(p, PLANE), OBJ_PLANE));
-    mat3 m = mat3(1, 0, 0,
+    {% for n in range(0, numMobiusRotateAroundAxis) %}
+    mat3 m{{ n }} = mat3(1, 0, 0,
                   0, 1, 0,
                   0, 0, 1);
-    {% for n in range(0, numMobiusRotateAroundAxis) %}
-    m *= computeRotateZ(abs(u_mobiusRotateAroundAxis{{ n }}.y));
-    m *= computeRotateY(-(u_mobiusRotateAroundAxis{{ n }}.x));
+    m{{ n }} *= computeRotateZ(abs(u_mobiusRotateAroundAxis{{ n }}.y));
+    m{{ n }} *= computeRotateY(-(u_mobiusRotateAroundAxis{{ n }}.x));
     if(u_mobiusRotateAroundAxisVisible{{ n }}) {
-        d = opUnion(d, vec2(distCylinder(m * p, vec2(0.05, 1.5)), OBJ_CYLINDER));
+        d = opUnion(d, vec2(distCylinder(m{{ n }} * p, vec2(0.05, 1.5)), OBJ_CYLINDER));
     }
     {% endfor %}
     return d;
