@@ -640,6 +640,82 @@ export class MobiusManager {
         }
     }
 
+    exportMobiusTransformations () {
+        const data = {};
+        data['transformations'] = []
+
+        for (const t of this.transformations) {
+            const d = { 'type': t.getClassName() };
+
+            if (t.getClassName() === 'MobiusRotateAroundAxis') {
+                d['lng'] = t.lng;
+                d['lat'] = t.lat;
+                d['theta'] = t.theta;
+                d['index'] = t.index;
+            } else if (t.getClassName() === 'MobiusTranslateAlongAxis') {
+                d['pLng'] = t.pLngLat.re;
+                d['pLat'] = t.pLngLat.im;
+                d['qLng'] = t.qLngLat.re;
+                d['qLat'] = t.qLngLat.im;
+                d['r1Lng'] = t.r1LngLat.re;
+                d['r1Lat'] = t.r1LngLat.im;
+                d['r2Lng'] = t.r2LngLat.re;
+                d['r2Lat'] = t.r2LngLat.im;
+                d['index'] = t.index;
+            } else if (t.getClassName() === 'MobiusZoomIn') {
+                d['lng'] = t.lng;
+                d['lat'] = t.lat;
+                d['zoomReal'] = t.zoomReal;
+                d['zoomImag'] = t.zoomImag;
+                d['index'] = t.index;
+            }
+            data['transformations'].push(d);
+        }
+
+        const blob = new Blob([JSON.stringify(data,
+                                              null, '    ')],
+                              { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'parameters.json';
+        a.click();
+    }
+
+    importMobiusTransformations(canvasMngr) {
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            this.clear();
+            const json = JSON.parse(reader.result);
+            for (const t of json['transformations']) {
+                let m;
+                if (t.type === 'MobiusRotateAroundAxis') {
+                    m = new MobiusRotateAroundAxis(t.lng,
+                                                   t.lat,
+                                                   t.theta);
+                } else if (t.type === 'MobiusTranslateAlongAxis') {
+                    m = new MobiusTranslateAlongAxis(t.pLng, t.pLat,
+                                                     t.qLng, t.qLat,
+                                                     t.r1Lng, t.r1Lat,
+                                                     t.r2Lng, t.r2Lat);
+                } else if (t.type === 'MobiusZoomIn') {
+                    m = new MobiusZoomIn(t.lng, t.lat,
+                                         t.zoomReal, t.zoomImag);
+                }
+                m.index = t.index;
+                this.addTransformation(m);
+            }
+            this.update();
+            canvasMngr.reCompileShaders();
+        });
+        const a = document.createElement('input');
+        a.type = 'file';
+        a.addEventListener('change', function(event) {
+            const files = event.target.files;
+            reader.readAsText(files[0]);
+        });
+        a.click();
+    }
+
     setUniformLocations (gl, uniLocations, program) {
         const genNums = {};
         for (const gen of this.transformations) {

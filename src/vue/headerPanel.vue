@@ -8,10 +8,10 @@
         <button class="button" @click="clearMobius">Clear</button>
       </li>
       <li class="buttonLi">
-        <button class="button" @click="">Export</button>
+        <button class="button" @click="exportParameters">Export</button>
       </li>
       <li class="buttonLi">
-        <button class="button" @click="">Import</button>
+        <button class="button" @click="importParameters">Import</button>
       </li>
       <li class="buttonLi">
         <button class="button" @click="saveEquirectangular">SaveImage</button>
@@ -32,6 +32,12 @@ export default{
             this.mobiusMngr.unselectAll();
             this.mobiusMngr.clear();
             this.canvasMngr.reCompileShaders();
+        },
+        exportParameters: function() {
+            this.mobiusMngr.exportMobiusTransformations();
+        },
+        importParameters: function() {
+            this.mobiusMngr.importMobiusTransformations(this.canvasMngr);
         }
     }
 }
