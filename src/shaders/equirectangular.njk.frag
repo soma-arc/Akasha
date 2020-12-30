@@ -32,6 +32,18 @@ uniform bool u_mobiusTranslateAlongAxisVisible{{ n }};
 
 {% include "./gamma.njk.frag" %}
 
+// iq's implementation
+// https://www.shadertoy.com/view/Xd2XWR
+float line( in vec2 p, in vec2 a, in vec2 b )
+{
+    vec2 pa = p - a;
+    vec2 ba = b - a;
+    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+    float d = length( pa - ba*h );
+    
+    return clamp(((1.0 - d)-0.99)*100.0, 0.0, 1.0);
+}
+
 out vec4 outColor;
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution;
@@ -49,10 +61,20 @@ void main() {
     // [lng, lat, zoomReal, zoomImag]
     {% for n in range(0, numMobiusZoomIn) %}
     if(u_mobiusZoomInVisible{{ n }}) {
+        if (distance(lnglat, u_mobiusZoomIn{{ n }}.xy) < 0.05) {
+            outColor = vec4(BLACK, 1);
+            return;
+        }
         if (distance(lnglat, u_mobiusZoomIn{{ n }}.xy) < 0.1) {
             outColor = vec4(PINK, 1);
             return;
         }
+
+        if(line(lnglat, u_mobiusZoomIn{{ n }}.xy, u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) > 0.2) {
+            outColor = vec4(PINK, 1);
+            return;
+        }
+
         if (distance(lnglat, u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1 ||
             distance(lnglat + vec2(TWO_PI, 0), u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1 ||
             distance(lnglat + vec2(0, PI), u_mobiusZoomIn{{ n }}.xy + u_mobiusZoomIn{{ n }}.zw) < 0.1) {
